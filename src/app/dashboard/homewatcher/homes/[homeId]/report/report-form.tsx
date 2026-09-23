@@ -40,6 +40,20 @@ export function ReportForm({
         ))}
       </div>
 
+      <fieldset className="flex flex-col gap-2">
+        <legend className="mb-1 text-sm font-semibold text-ink">Overall status</legend>
+        {[
+          ["ok", "All good"],
+          ["attention", "Needs attention"],
+          ["urgent", "Urgent, please call the owner"],
+        ].map(([value, label]) => (
+          <label key={value} className="flex items-center gap-3 rounded-xl bg-surface px-4 py-3 text-sm text-ink shadow-sm">
+            <input type="radio" name="status" value={value} defaultChecked={value === "ok"} className="h-4 w-4 accent-accent" />
+            {label}
+          </label>
+        ))}
+      </fieldset>
+
       <label className="flex flex-col gap-1 text-sm font-semibold text-ink">
         Notes
         <textarea

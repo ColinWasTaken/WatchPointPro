@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Binoculars, Home as HomeIcon, MapPin, Mail } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { HomeActivity } from "@/components/home-activity";
 import {
   acceptAssignmentAction,
   declineAssignmentAction,
@@ -15,7 +16,15 @@ export default async function HomewatcherDashboardPage() {
 
   const assignments = await prisma.homeAssignment.findMany({
     where: { homewatcherId: session.user.id },
-    include: { home: { include: { owner: true } } },
+    include: {
+      home: {
+        include: {
+          owner: true,
+          reports: { orderBy: { createdAt: "desc" }, take: 1 },
+          visits: { where: { scheduledFor: { gte: new Date() } }, orderBy: { scheduledFor: "asc" }, take: 1 },
+        },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -122,6 +131,10 @@ export default async function HomewatcherDashboardPage() {
                 <Mail className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
                 {assignment.home.owner.name ?? assignment.home.owner.email}
               </p>
+              <HomeActivity
+                lastReport={assignment.home.reports[0] ?? null}
+                nextVisit={assignment.home.visits[0]?.scheduledFor ?? null}
+              />
             </Link>
           ))}
         </div>

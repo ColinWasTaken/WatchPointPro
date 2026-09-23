@@ -6,9 +6,13 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { UpdatesFeed } from "@/components/updates-feed";
 import { MessageComposer } from "@/components/message-composer";
+import { VisitsSection } from "@/components/visits-section";
 import { StatusBadge } from "@/components/status-badge";
 import { BackLink } from "@/components/back-link";
+import { ConfirmButton } from "@/components/confirm-button";
+import { removeAssignmentAction, cancelInviteAction } from "@/lib/actions/homes";
 import { InviteForm } from "./invite-form";
+import { DeleteHomeForm } from "./delete-home-form";
 
 export default async function HomeDetailPage(
   props: PageProps<"/dashboard/homeowner/homes/[homeId]">,
@@ -119,7 +123,18 @@ export default async function HomeDetailPage(
                   <p className="text-sm font-semibold text-ink">{invite.email}</p>
                   <p className="text-xs text-ink-muted">Hasn&apos;t signed up yet</p>
                 </div>
-                <StatusBadge status="pending" />
+                <div className="flex items-center gap-2">
+                  <StatusBadge status="pending" />
+                  <form action={cancelInviteAction.bind(null, invite.id)}>
+                    <ConfirmButton
+                      message={`Cancel the invitation to ${invite.email}?`}
+                      ariaLabel="Cancel invitation"
+                      className="text-xs font-medium text-ink-muted hover:text-danger"
+                    >
+                      Cancel
+                    </ConfirmButton>
+                  </form>
+                </div>
               </li>
             ))}
             {home.assignments.map((assignment) => (
@@ -135,9 +150,20 @@ export default async function HomeDetailPage(
                     {assignment.homewatcher.email}
                   </p>
                 </div>
-                <StatusBadge
-                  status={assignment.status === "accepted" ? "accepted" : "pending"}
-                />
+                <div className="flex items-center gap-2">
+                  <StatusBadge
+                    status={assignment.status === "accepted" ? "accepted" : "pending"}
+                  />
+                  <form action={removeAssignmentAction.bind(null, assignment.id)}>
+                    <ConfirmButton
+                      message={`Remove ${assignment.homewatcher.name ?? assignment.homewatcher.email} from this home?`}
+                      ariaLabel="Remove homewatcher"
+                      className="text-xs font-medium text-ink-muted hover:text-danger"
+                    >
+                      Remove
+                    </ConfirmButton>
+                  </form>
+                </div>
               </li>
             ))}
           </ul>
@@ -146,10 +172,27 @@ export default async function HomeDetailPage(
         <InviteForm homeId={home.id} />
       </div>
 
+      <VisitsSection homeId={home.id} />
+
       <div className="mt-8">
         <h2 className="text-lg font-bold text-ink">Updates</h2>
-        <UpdatesFeed reports={reports} messages={messages} currentUserId={session.user.id} />
+        <UpdatesFeed
+          reports={reports}
+          messages={messages}
+          currentUserId={session.user.id}
+          reportHrefBase={`/dashboard/homeowner/homes/${home.id}/reports`}
+        />
+        <Link
+          href={`/dashboard/homeowner/homes/${home.id}/reports`}
+          className="mt-3 inline-block text-sm font-semibold text-accent"
+        >
+          View all reports
+        </Link>
         <MessageComposer homeId={home.id} recipientOptions={activeWatchers} />
+      </div>
+
+      <div className="mt-10">
+        <DeleteHomeForm homeId={home.id} nickname={home.nickname} />
       </div>
     </div>
   );

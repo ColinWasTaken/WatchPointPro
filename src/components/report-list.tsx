@@ -1,53 +1,63 @@
 import Image from "next/image";
+import Link from "next/link";
 import { ClipboardCheck } from "lucide-react";
+import { LocalTime } from "./local-time";
+import { ReportStatusBadge } from "./report-status-badge";
 
-type ReportListItem = {
+export type ReportListItem = {
   id: string;
   createdAt: Date;
   notes: string | null;
   photoUrls: string;
   checklistResults: string;
+  status: string;
 };
 
-export function ReportCard({ report }: { report: ReportListItem }) {
+export function ReportCard({ report, href }: { report: ReportListItem; href?: string }) {
   const results = JSON.parse(report.checklistResults) as Record<string, boolean>;
   const photoUrls = JSON.parse(report.photoUrls) as string[];
   const checkedCount = Object.values(results).filter(Boolean).length;
   const totalCount = Object.values(results).length;
 
-  return (
-    <div className="rounded-2xl bg-surface p-4 shadow-sm">
-      <div className="flex items-center justify-between">
+  const body = (
+    <>
+      <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-semibold text-ink">
-          {new Date(report.createdAt).toLocaleString()}
+          <LocalTime iso={new Date(report.createdAt).toISOString()} />
         </p>
-        <span className="flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent">
-          <ClipboardCheck className="h-3 w-3" strokeWidth={2} />
-          {checkedCount}/{totalCount} checked
-        </span>
+        <ReportStatusBadge status={report.status} />
       </div>
-      {report.notes && (
-        <p className="mt-2 text-sm text-ink-muted">{report.notes}</p>
-      )}
+      <p className="mt-1 flex items-center gap-1 text-xs text-ink-muted">
+        <ClipboardCheck className="h-3 w-3" strokeWidth={2} />
+        {checkedCount}/{totalCount} checked
+      </p>
+      {report.notes && <p className="mt-2 line-clamp-3 text-sm text-ink-muted">{report.notes}</p>}
       {photoUrls.length > 0 && (
         <div className="mt-3 flex gap-2">
-          {photoUrls.map((url) => (
-            <Image
-              key={url}
-              src={url}
-              alt="Report photo"
-              width={80}
-              height={80}
-              className="h-20 w-20 rounded-xl object-cover"
-            />
+          {photoUrls.slice(0, 4).map((url) => (
+            <Image key={url} src={url} alt="Report photo" width={80} height={80} className="h-20 w-20 rounded-xl object-cover" />
           ))}
         </div>
       )}
-    </div>
+    </>
+  );
+
+  return href ? (
+    <Link href={href} className="block rounded-2xl bg-surface p-4 shadow-sm transition hover:shadow-md">
+      {body}
+    </Link>
+  ) : (
+    <div className="rounded-2xl bg-surface p-4 shadow-sm">{body}</div>
   );
 }
 
-export function ReportList({ reports }: { reports: ReportListItem[] }) {
+export function ReportList({
+  reports,
+  hrefBase,
+}: {
+  reports: ReportListItem[];
+  hrefBase?: string;
+}) {
   if (reports.length === 0) {
     return <p className="mt-2 text-sm text-ink-muted">No reports yet.</p>;
   }
@@ -55,7 +65,7 @@ export function ReportList({ reports }: { reports: ReportListItem[] }) {
   return (
     <div className="mt-3 flex flex-col gap-3">
       {reports.map((report) => (
-        <ReportCard key={report.id} report={report} />
+        <ReportCard key={report.id} report={report} href={hrefBase ? `${hrefBase}/${report.id}` : undefined} />
       ))}
     </div>
   );

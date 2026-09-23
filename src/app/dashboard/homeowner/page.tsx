@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { Home as HomeIcon, MapPin, Plus, Users } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { HomeActivity } from "@/components/home-activity";
 
 export default async function HomeownerDashboardPage() {
   const session = await auth();
@@ -11,7 +12,11 @@ export default async function HomeownerDashboardPage() {
 
   const homes = await prisma.home.findMany({
     where: { ownerId: session.user.id },
-    include: { assignments: { where: { status: "accepted" } } },
+    include: {
+      assignments: { where: { status: "accepted" } },
+      reports: { orderBy: { createdAt: "desc" }, take: 1 },
+      visits: { where: { scheduledFor: { gte: new Date() } }, orderBy: { scheduledFor: "asc" }, take: 1 },
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -70,6 +75,7 @@ export default async function HomeownerDashboardPage() {
                   ? "No homewatcher assigned"
                   : `${home.assignments.length} homewatcher${home.assignments.length > 1 ? "s" : ""} assigned`}
               </p>
+              <HomeActivity lastReport={home.reports[0] ?? null} nextVisit={home.visits[0]?.scheduledFor ?? null} />
             </Link>
           ))}
         </div>

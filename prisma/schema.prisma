@@ -14,9 +14,12 @@ model User {
   name          String?
   role          String?
   emailVerifiedAt DateTime?
+  notifyEmail   Boolean  @default(true)
+  timezone      String?
   createdAt     DateTime @default(now())
 
   authTokens       AuthToken[]
+  visitsCreated    Visit[]
   homes            Home[]           @relation("HomeOwner")
   assignments      HomeAssignment[]
   reports          Report[]
@@ -36,6 +39,7 @@ model Home {
 
   assignments     HomeAssignment[]
   invites         HomeInvite[]
+  visits          Visit[]
   checklistItems  ChecklistItem[]
   reports         Report[]
   messages        Message[]
@@ -69,6 +73,7 @@ model Report {
   homewatcherId     String
   homewatcher       User     @relation(fields: [homewatcherId], references: [id])
   checklistResults  String   // JSON string: { [checklistItemId]: boolean }
+  status            String   @default("ok") // ok | attention | urgent
   notes             String?
   photoUrls         String   @default("[]") // JSON string array
   createdAt         DateTime @default(now())
@@ -109,4 +114,20 @@ model HomeInvite {
 
   @@unique([homeId, email])
   @@index([email])
+}
+
+// A planned check-in at a home.
+model Visit {
+  id             String    @id @default(cuid())
+  homeId         String
+  home           Home      @relation(fields: [homeId], references: [id], onDelete: Cascade)
+  scheduledFor   DateTime
+  note           String?
+  createdById    String
+  createdBy      User      @relation(fields: [createdById], references: [id])
+  reminderSentAt DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([homeId, scheduledFor])
+  @@index([scheduledFor])
 }

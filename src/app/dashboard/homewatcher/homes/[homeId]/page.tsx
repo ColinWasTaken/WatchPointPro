@@ -15,7 +15,10 @@ import { prisma } from "@/lib/prisma";
 import { ReportList } from "@/components/report-list";
 import { MessageList } from "@/components/message-list";
 import { MessageComposer } from "@/components/message-composer";
+import { VisitsSection } from "@/components/visits-section";
 import { BackLink } from "@/components/back-link";
+import { ConfirmButton } from "@/components/confirm-button";
+import { leaveHomeAction } from "@/lib/actions/assignments";
 import { WatcherNotesForm } from "./watcher-notes-form";
 import { ChecklistEditor } from "./checklist-editor";
 
@@ -100,6 +103,8 @@ export default async function HomewatcherHomeDetailPage(
         <WatcherNotesForm homeId={homeId} initialNotes={assignment.watcherNotes ?? ""} />
       </div>
 
+      <VisitsSection homeId={homeId} />
+
       <div className="mt-8">
         <div className="flex items-center justify-between">
           <h2 className="flex items-center gap-1.5 text-lg font-bold text-ink">
@@ -119,7 +124,13 @@ export default async function HomewatcherHomeDetailPage(
 
       <div className="mt-8">
         <h2 className="text-lg font-bold text-ink">Recent reports</h2>
-        <ReportList reports={reports} />
+        <ReportList reports={reports} hrefBase={`/dashboard/homewatcher/homes/${homeId}/reports`} />
+        <Link
+          href={`/dashboard/homewatcher/homes/${homeId}/reports`}
+          className="mt-3 inline-block text-sm font-semibold text-accent"
+        >
+          View all reports
+        </Link>
       </div>
 
       <div className="mt-8">
@@ -130,6 +141,15 @@ export default async function HomewatcherHomeDetailPage(
         <MessageList messages={messages} currentUserId={session.user.id} />
         <MessageComposer homeId={homeId} />
       </div>
+
+      <form action={leaveHomeAction.bind(null, homeId)} className="mt-10">
+        <ConfirmButton
+          message={`Stop watching ${home.nickname}? You'll lose access to it.`}
+          className="text-sm font-medium text-ink-muted hover:text-danger"
+        >
+          Stop watching this home
+        </ConfirmButton>
+      </form>
     </div>
   );
 }

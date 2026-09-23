@@ -17,7 +17,7 @@ export default async function HomeownerLayout({
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <DashboardHeader homeHref="/dashboard/homeowner" userEmail={session.user.email ?? ""} />
+      <DashboardHeader homeHref="/dashboard/homeowner" userEmail={session.user.email ?? ""} role="homeowner" />
       <main className="flex-1 px-6 py-8">{children}</main>
     </div>
   );

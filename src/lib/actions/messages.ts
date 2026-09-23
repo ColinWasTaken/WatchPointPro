@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { appUrl, emails } from "@/lib/email";
+import { notifyUser } from "@/lib/notify";
 
 export type ActionState = { error?: string };
 
@@ -61,9 +63,32 @@ export async function sendMessageAction(
     return { error: "Unauthorized." };
   }
 
+  const previous = await prisma.message.findFirst({
+    where: { homeId },
+    orderBy: { createdAt: "desc" },
+  });
+
   await prisma.message.create({
     data: { homeId, senderId: session.user.id, recipientId, content },
   });
+
+  // Skip the email when the same person is mid-burst (avoids one email per line).
+  const midBurst =
+    previous &&
+    previous.senderId === session.user.id &&
+    Date.now() - previous.createdAt.getTime() < 10 * 60 * 1000;
+  if (!midBurst) {
+    const path = session.user.role === "homeowner" ? "homewatcher" : "homeowner";
+    await notifyUser(
+      recipientId,
+      emails.newMessage(
+        session.user.name ?? "Someone",
+        home.nickname,
+        content.length > 140 ? `${content.slice(0, 140)}…` : content,
+        `${appUrl()}/dashboard/${path}/homes/${homeId}`,
+      ),
+    );
+  }
 
   revalidatePath(`/dashboard/homeowner/homes/${homeId}`);
   revalidatePath(`/dashboard/homewatcher/homes/${homeId}`);

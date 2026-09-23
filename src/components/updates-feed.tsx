@@ -7,6 +7,7 @@ type ReportItem = {
   notes: string | null;
   photoUrls: string;
   checklistResults: string;
+  status: string;
 };
 
 type MessageItem = {
@@ -21,10 +22,12 @@ export function UpdatesFeed({
   reports,
   messages,
   currentUserId,
+  reportHrefBase,
 }: {
   reports: ReportItem[];
   messages: MessageItem[];
   currentUserId: string;
+  reportHrefBase?: string;
 }) {
   const items = [
     ...reports.map((report) => ({
@@ -47,7 +50,11 @@ export function UpdatesFeed({
     <div className="mt-3 flex flex-col gap-3">
       {items.map((item) =>
         item.kind === "report" ? (
-          <ReportCard key={`report-${item.report.id}`} report={item.report} />
+          <ReportCard
+            key={`report-${item.report.id}`}
+            report={item.report}
+            href={reportHrefBase ? `${reportHrefBase}/${item.report.id}` : undefined}
+          />
         ) : (
           <div key={`message-${item.message.id}`} className="flex">
             <MessageBubble

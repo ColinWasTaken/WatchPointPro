@@ -66,7 +66,41 @@ function layout(heading: string, body: string, buttonLabel: string, href: string
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 
+export function formatWhen(date: Date, timezone?: string | null) {
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "full",
+    timeStyle: "short",
+    timeZone: timezone || "America/New_York",
+  }).format(date);
+}
+
 export const emails = {
+  newReport: (watcher: string, home: string, status: string, link: string) => ({
+    subject: `${status === "ok" ? "New report" : status === "urgent" ? "URGENT report" : "Report needs attention"}: ${home}`,
+    html: layout(
+      "New visit report",
+      `${esc(watcher)} submitted a report for <b>${esc(home)}</b>. Status: <b>${esc(status)}</b>.`,
+      "View report",
+      link,
+    ),
+  }),
+  newMessage: (sender: string, home: string, snippet: string, link: string) => ({
+    subject: `New message from ${sender} about ${home}`,
+    html: layout("New message", `<b>${esc(sender)}</b> (${esc(home)}): "${esc(snippet)}"`, "Open conversation", link),
+  }),
+  visitScheduled: (by: string, home: string, when: string, link: string) => ({
+    subject: `Visit scheduled for ${home}`,
+    html: layout("Visit scheduled", `${esc(by)} scheduled a visit to <b>${esc(home)}</b> for ${esc(when)}.`, "View schedule", link),
+  }),
+  visitReminder: (home: string, address: string, when: string, link: string) => ({
+    subject: `Reminder: visit to ${home} coming up`,
+    html: layout("Visit reminder", `You have a visit to <b>${esc(home)}</b> (${esc(address)}) on ${esc(when)}.`, "Open home", link),
+  }),
+  invitationAccepted: (watcher: string, home: string, link: string) => ({
+    subject: `${watcher} accepted your invitation`,
+    html: layout("Invitation accepted", `${esc(watcher)} is now watching <b>${esc(home)}</b>.`, "View home", link),
+  }),
+
   verify: (link: string) => ({
     subject: "Confirm your HomeWatch email",
     html: layout("Confirm your email", "Thanks for signing up for HomeWatch. Confirm your email address to finish setting up your account. This link expires in 24 hours.", "Confirm email", link),

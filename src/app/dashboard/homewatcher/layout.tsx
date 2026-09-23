@@ -17,7 +17,7 @@ export default async function HomewatcherLayout({
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <DashboardHeader homeHref="/dashboard/homewatcher" userEmail={session.user.email ?? ""} />
+      <DashboardHeader homeHref="/dashboard/homewatcher" userEmail={session.user.email ?? ""} role="homewatcher" />
       <main className="flex-1 px-6 py-8">{children}</main>
     </div>
   );

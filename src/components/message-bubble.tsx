@@ -1,3 +1,5 @@
+import { LocalTime } from "./local-time";
+
 export function MessageBubble({
   content,
   createdAt,
@@ -20,7 +22,7 @@ export function MessageBubble({
       )}
       <p className="whitespace-pre-wrap">{content}</p>
       <p className={`mt-1 text-[10px] ${isOwn ? "text-white/70" : "text-ink-muted"}`}>
-        {new Date(createdAt).toLocaleString()}
+        <LocalTime iso={new Date(createdAt).toISOString()} />
       </p>
     </div>
   );

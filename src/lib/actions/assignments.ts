@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { appUrl, emails } from "@/lib/email";
+import { notifyUser } from "@/lib/notify";
 
 export type ActionState = { error?: string; success?: string };
 
@@ -29,6 +31,18 @@ export async function acceptAssignmentAction(assignmentId: string) {
     where: { id: assignmentId },
     data: { status: "accepted" },
   });
+
+  const home = await prisma.home.findUnique({ where: { id: assignment.homeId } });
+  if (home) {
+    await notifyUser(
+      home.ownerId,
+      emails.invitationAccepted(
+        session.user.name ?? session.user.email ?? "Your homewatcher",
+        home.nickname,
+        `${appUrl()}/dashboard/homeowner/homes/${home.id}`,
+      ),
+    );
+  }
 
   revalidatePath("/dashboard/homewatcher");
 }
@@ -71,4 +85,16 @@ export async function updateWatcherNotesAction(
 
   revalidatePath(`/dashboard/homewatcher/homes/${homeId}`);
   return { success: "Notes saved." };
+}
+
+export async function leaveHomeAction(homeId: string) {
+  const session = await requireHomewatcher();
+
+  await prisma.homeAssignment.deleteMany({
+    where: { homeId, homewatcherId: session.user.id },
+  });
+
+  revalidatePath("/dashboard/homewatcher");
+  revalidatePath(`/dashboard/homeowner/homes/${homeId}`);
+  redirect("/dashboard/homewatcher");
 }

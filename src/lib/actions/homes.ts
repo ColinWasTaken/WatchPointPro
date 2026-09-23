@@ -165,3 +165,50 @@ export async function updateHomeAction(
   revalidatePath(`/dashboard/homewatcher/homes/${homeId}`);
   redirect(`/dashboard/homeowner/homes/${homeId}`);
 }
+
+export async function deleteHomeAction(
+  homeId: string,
+  _prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const session = await requireHomeowner();
+
+  const home = await prisma.home.findUnique({ where: { id: homeId }, include: { reports: true } });
+  if (!home || home.ownerId !== session.user.id) {
+    return { error: "Home not found." };
+  }
+  if (String(formData.get("confirm") ?? "").trim() !== home.nickname) {
+    return { error: `Type "${home.nickname}" exactly to confirm.` };
+  }
+
+  const photos = [home.photoUrl, ...home.reports.flatMap((r) => JSON.parse(r.photoUrls) as string[])];
+  await prisma.home.delete({ where: { id: homeId } });
+  await Promise.all(photos.map((url) => deletePhoto(url)));
+
+  revalidatePath("/dashboard/homeowner");
+  redirect("/dashboard/homeowner");
+}
+
+export async function removeAssignmentAction(assignmentId: string) {
+  const session = await requireHomeowner();
+
+  const assignment = await prisma.homeAssignment.findUnique({
+    where: { id: assignmentId },
+    include: { home: true },
+  });
+  if (!assignment || assignment.home.ownerId !== session.user.id) return;
+
+  await prisma.homeAssignment.delete({ where: { id: assignmentId } });
+  revalidatePath(`/dashboard/homeowner/homes/${assignment.homeId}`);
+  revalidatePath("/dashboard/homeowner");
+}
+
+export async function cancelInviteAction(inviteId: string) {
+  const session = await requireHomeowner();
+
+  const invite = await prisma.homeInvite.findUnique({ where: { id: inviteId }, include: { home: true } });
+  if (!invite || invite.home.ownerId !== session.user.id) return;
+
+  await prisma.homeInvite.delete({ where: { id: inviteId } });
+  revalidatePath(`/dashboard/homeowner/homes/${invite.homeId}`);
+}
