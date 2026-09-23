@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// SQLite has no native enum type, so role is a plain string: "homeowner" | "homewatcher"
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String?
+  name          String?
+  role          String?
+  createdAt     DateTime @default(now())
+
+  homes            Home[]           @relation("HomeOwner")
+  assignments      HomeAssignment[]
+  reports          Report[]
+  sentMessages     Message[]        @relation("MessageSender")
+  receivedMessages Message[]        @relation("MessageRecipient")
+}
+
+model Home {
+  id        String   @id @default(cuid())
+  ownerId   String
+  owner     User     @relation("HomeOwner", fields: [ownerId], references: [id])
+  address   String
+  nickname  String
+  photoUrl  String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  assignments     HomeAssignment[]
+  checklistItems  ChecklistItem[]
+  reports         Report[]
+  messages        Message[]
+}
+
+model HomeAssignment {
+  id            String   @id @default(cuid())
+  homeId        String
+  home          Home     @relation(fields: [homeId], references: [id], onDelete: Cascade)
+  homewatcherId String
+  homewatcher   User     @relation(fields: [homewatcherId], references: [id])
+  status        String   @default("pending") // pending | accepted
+  watcherNotes  String? // homewatcher's own visit-relevant notes for this home
+  createdAt     DateTime @default(now())
+
+  @@unique([homeId, homewatcherId])
+}
+
+model ChecklistItem {
+  id     String @id @default(cuid())
+  homeId String
+  home   Home   @relation(fields: [homeId], references: [id], onDelete: Cascade)
+  label  String
+  order  Int    @default(0)
+}
+
+model Report {
+  id                String   @id @default(cuid())
+  homeId            String
+  home              Home     @relation(fields: [homeId], references: [id], onDelete: Cascade)
+  homewatcherId     String
+  homewatcher       User     @relation(fields: [homewatcherId], references: [id])
+  checklistResults  String   // JSON string: { [checklistItemId]: boolean }
+  notes             String?
+  photoUrls         String   @default("[]") // JSON string array
+  createdAt         DateTime @default(now())
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  homeId      String
+  home        Home     @relation(fields: [homeId], references: [id], onDelete: Cascade)
+  senderId    String
+  sender      User     @relation("MessageSender", fields: [senderId], references: [id])
+  recipientId String
+  recipient   User     @relation("MessageRecipient", fields: [recipientId], references: [id])
+  content     String
+  createdAt   DateTime @default(now())
+}
