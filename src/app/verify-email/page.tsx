@@ -22,9 +22,9 @@ export default async function VerifyEmailPage(props: PageProps<"/verify-email">)
           </>
         ) : (
           <>
-            <p className="mb-4 text-sm text-ink-muted">This confirmation link is invalid or has expired.</p>
+            <p className="mb-4 text-sm text-ink-muted">This confirmation link is invalid or has expired. If you already confirmed your email, you can just sign in.</p>
             <Link href="/login" className="text-sm font-semibold text-accent">
-              Sign in to request a new one
+              Go to sign in
             </Link>
           </>
         )}

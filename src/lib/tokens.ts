@@ -18,7 +18,11 @@ export async function issueToken(userId: string, type: TokenType) {
   });
   if (recent) return null;
 
-  await prisma.authToken.deleteMany({ where: { userId, type } });
+  // Password-reset links are single-active; confirmation links stay valid until they
+  // expire so a delayed first email still works after "resend".
+  if (type === "reset_password") {
+    await prisma.authToken.deleteMany({ where: { userId, type } });
+  }
   const token = randomBytes(32).toString("base64url");
   await prisma.authToken.create({
     data: { userId, type, tokenHash: hash(token), expiresAt: new Date(Date.now() + TTL_MS[type]) },

@@ -5,7 +5,21 @@ export function isEmailConfigured() {
 }
 
 export function appUrl() {
-  return (process.env.APP_URL ?? "http://localhost:3001").replace(/\/$/, "");
+  const fromVercel = process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : undefined;
+  return (process.env.APP_URL ?? fromVercel ?? "http://localhost:3001").replace(/\/$/, "");
+}
+
+function toPlainText(html: string) {
+  return html
+    .replace(/<a href="([^"]+)"[^>]*>([^<]*)<\/a>/g, "$2: $1")
+    .replace(/<\/(p|h2|div)>/g, "\n\n")
+    .replace(/<br\s*\/?>/g, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 export async function sendEmail({
@@ -30,6 +44,7 @@ export async function sendEmail({
       to,
       subject,
       html,
+      text: toPlainText(html),
     }),
   });
 
