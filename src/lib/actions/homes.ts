@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { savePhoto } from "@/lib/uploads";
+import { appUrl, emails, isEmailConfigured, sendEmail } from "@/lib/email";
 import { DEFAULT_CHECKLIST_ITEMS } from "@/lib/default-checklist";
 
 export type ActionState = { error?: string; success?: string };
@@ -76,11 +77,28 @@ export async function inviteHomewatcherAction(
   }
 
   const watcher = await prisma.user.findUnique({ where: { email } });
-  if (!watcher || watcher.role !== "homewatcher") {
-    return {
-      error:
-        "No homewatcher account found with that email. Ask them to sign up first, then invite them again.",
-    };
+  const ownerName = session.user.name ?? session.user.email ?? "A homeowner";
+
+  if (!watcher) {
+    await prisma.homeInvite.upsert({
+      where: { homeId_email: { homeId, email } },
+      create: { homeId, email },
+      update: {},
+    });
+    revalidatePath(`/dashboard/homeowner/homes/${homeId}`);
+
+    if (!isEmailConfigured()) {
+      return {
+        success: `Invitation saved for ${email}. Email sending isn't set up yet, so ask them to sign up as a homewatcher with that address.`,
+      };
+    }
+    const mail = emails.invite(ownerName, home.nickname, `${appUrl()}/login?role=homewatcher`);
+    await sendEmail({ to: email, ...mail });
+    return { success: `Invitation emailed to ${email}. It'll be waiting when they sign up.` };
+  }
+
+  if (watcher.role !== "homewatcher") {
+    return { error: "That email belongs to a homeowner account, so it can't be invited as a homewatcher." };
   }
 
   const existing = await prisma.homeAssignment.findUnique({
@@ -93,6 +111,8 @@ export async function inviteHomewatcherAction(
   await prisma.homeAssignment.create({
     data: { homeId, homewatcherId: watcher.id, status: "pending" },
   });
+
+  await sendEmail({ to: email, ...emails.inviteExisting(ownerName, home.nickname, `${appUrl()}/login`) });
 
   revalidatePath(`/dashboard/homeowner/homes/${homeId}`);
   return { success: `Invited ${watcher.name ?? watcher.email}. Waiting for them to accept.` };

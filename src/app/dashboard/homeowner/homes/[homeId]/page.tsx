@@ -23,6 +23,7 @@ export default async function HomeDetailPage(
         include: { homewatcher: true },
         orderBy: { createdAt: "desc" },
       },
+      invites: { orderBy: { createdAt: "desc" } },
     },
   });
 
@@ -93,12 +94,24 @@ export default async function HomeDetailPage(
           Homewatchers
         </h2>
 
-        {home.assignments.length === 0 ? (
+        {home.assignments.length === 0 && home.invites.length === 0 ? (
           <p className="mt-2 text-sm text-ink-muted">
             No homewatcher invited yet.
           </p>
         ) : (
           <ul className="mt-2 flex flex-col gap-2">
+            {home.invites.map((invite) => (
+              <li
+                key={invite.id}
+                className="flex items-center justify-between rounded-2xl bg-surface px-4 py-3 shadow-sm"
+              >
+                <div>
+                  <p className="text-sm font-semibold text-ink">{invite.email}</p>
+                  <p className="text-xs text-ink-muted">Hasn&apos;t signed up yet</p>
+                </div>
+                <StatusBadge status="pending" />
+              </li>
+            ))}
             {home.assignments.map((assignment) => (
               <li
                 key={assignment.id}

@@ -13,8 +13,10 @@ model User {
   passwordHash  String?
   name          String?
   role          String?
+  emailVerifiedAt DateTime?
   createdAt     DateTime @default(now())
 
+  authTokens       AuthToken[]
   homes            Home[]           @relation("HomeOwner")
   assignments      HomeAssignment[]
   reports          Report[]
@@ -33,6 +35,7 @@ model Home {
   createdAt DateTime @default(now())
 
   assignments     HomeAssignment[]
+  invites         HomeInvite[]
   checklistItems  ChecklistItem[]
   reports         Report[]
   messages        Message[]
@@ -81,4 +84,29 @@ model Message {
   recipient   User     @relation("MessageRecipient", fields: [recipientId], references: [id])
   content     String
   createdAt   DateTime @default(now())
+}
+
+// One-time tokens for email verification and password reset. Only the SHA-256 hash is stored.
+model AuthToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String // verify_email | reset_password
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId, type])
+}
+
+// An email invitation to a person who has no HomeWatch account yet.
+model HomeInvite {
+  id        String   @id @default(cuid())
+  homeId    String
+  home      Home     @relation(fields: [homeId], references: [id], onDelete: Cascade)
+  email     String
+  createdAt DateTime @default(now())
+
+  @@unique([homeId, email])
+  @@index([email])
 }

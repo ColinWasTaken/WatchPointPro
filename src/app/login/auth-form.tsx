@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import type { UserRole } from "@/types/next-auth";
@@ -10,7 +11,13 @@ const ROLE_LABEL: Record<UserRole, string> = {
   homewatcher: "Homewatcher",
 };
 
-export function AuthForm({ initialRole }: { initialRole: UserRole | null }) {
+export function AuthForm({
+  initialRole,
+  notice,
+}: {
+  initialRole: UserRole | null;
+  notice: string | null;
+}) {
   const router = useRouter();
   const [mode, setMode] = useState<"signin" | "signup">(
     initialRole ? "signup" : "signin",
@@ -21,10 +28,22 @@ export function AuthForm({ initialRole }: { initialRole: UserRole | null }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [awaitingVerification, setAwaitingVerification] = useState(false);
+  const [resent, setResent] = useState(false);
+
+  async function resendVerification() {
+    await fetch("/api/resend-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    setResent(true);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setResent(false);
     setSubmitting(true);
 
     try {
@@ -40,6 +59,11 @@ export function AuthForm({ initialRole }: { initialRole: UserRole | null }) {
           setSubmitting(false);
           return;
         }
+        if (data.needsVerification) {
+          setAwaitingVerification(true);
+          setSubmitting(false);
+          return;
+        }
       }
 
       const result = await signIn("credentials", {
@@ -47,6 +71,12 @@ export function AuthForm({ initialRole }: { initialRole: UserRole | null }) {
         password,
         redirect: false,
       });
+
+      if (result?.code === "email_not_verified") {
+        setAwaitingVerification(true);
+        setSubmitting(false);
+        return;
+      }
 
       if (result?.error) {
         setError("Invalid email or password.");
@@ -60,6 +90,36 @@ export function AuthForm({ initialRole }: { initialRole: UserRole | null }) {
       setError("Something went wrong. Please try again.");
       setSubmitting(false);
     }
+  }
+
+  if (awaitingVerification) {
+    return (
+      <div className="w-full max-w-sm rounded-3xl bg-surface p-8 text-center shadow-md">
+        <h1 className="mb-2 text-xl font-bold text-ink">Check your email</h1>
+        <p className="mb-6 text-sm text-ink-muted">
+          We sent a confirmation link to <span className="font-semibold text-ink">{email}</span>.
+          Tap it to finish setting up your account, then sign in.
+        </p>
+        <button
+          type="button"
+          onClick={resendVerification}
+          disabled={resent}
+          className="text-sm font-semibold text-accent disabled:text-ink-muted"
+        >
+          {resent ? "Sent — check your inbox" : "Resend the email"}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setAwaitingVerification(false);
+            setMode("signin");
+          }}
+          className="mt-4 block w-full text-sm font-medium text-ink-muted hover:text-accent"
+        >
+          Back to sign in
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -88,6 +148,10 @@ export function AuthForm({ initialRole }: { initialRole: UserRole | null }) {
           Sign Up
         </button>
       </div>
+
+      {notice && (
+        <p className="mb-4 rounded-2xl bg-accent-soft px-4 py-2.5 text-sm text-accent">{notice}</p>
+      )}
 
       <h1 className="mb-6 text-xl font-bold text-ink">
         {mode === "signup"
@@ -142,6 +206,12 @@ export function AuthForm({ initialRole }: { initialRole: UserRole | null }) {
           minLength={8}
           className="rounded-2xl border border-border bg-background px-4 py-2.5 text-sm text-ink outline-none focus:border-accent"
         />
+
+        {mode === "signin" && (
+          <Link href="/forgot-password" className="-mt-1 self-end text-xs font-medium text-ink-muted hover:text-accent">
+            Forgot password?
+          </Link>
+        )}
 
         {error && <p className="text-sm text-danger">{error}</p>}
 

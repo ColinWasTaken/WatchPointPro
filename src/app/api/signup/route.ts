@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { appUrl, emails, isEmailConfigured, sendEmail } from "@/lib/email";
+import { issueToken } from "@/lib/tokens";
+import { claimInvites } from "@/lib/invites";
 
 const VALID_ROLES = ["homeowner", "homewatcher"];
 
@@ -31,10 +34,27 @@ export async function POST(request: Request) {
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
+  const emailEnabled = isEmailConfigured();
 
-  await prisma.user.create({
-    data: { email, name, role, passwordHash },
+  const user = await prisma.user.create({
+    data: {
+      email,
+      name,
+      role,
+      passwordHash,
+      emailVerifiedAt: emailEnabled ? null : new Date(),
+    },
   });
 
-  return NextResponse.json({ ok: true });
+  if (!emailEnabled) {
+    await claimInvites(user);
+    return NextResponse.json({ ok: true, needsVerification: false });
+  }
+
+  const token = await issueToken(user.id, "verify_email");
+  if (token) {
+    const mail = emails.verify(`${appUrl()}/verify-email?token=${token}`);
+    await sendEmail({ to: email, ...mail });
+  }
+  return NextResponse.json({ ok: true, needsVerification: true });
 }

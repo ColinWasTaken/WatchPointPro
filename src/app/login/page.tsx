@@ -9,10 +9,15 @@ function parseRole(value: string | string[] | undefined): UserRole | null {
 export default async function LoginPage(props: PageProps<"/login">) {
   const searchParams = await props.searchParams;
   const role = parseRole(searchParams.role);
+  const notice = searchParams.verified
+    ? "Email confirmed. You can sign in now."
+    : searchParams.reset
+      ? "Password updated. Sign in with your new password."
+      : null;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-6 py-16">
-      <AuthForm initialRole={role} />
+      <AuthForm initialRole={role} notice={notice} />
     </div>
   );
 }
