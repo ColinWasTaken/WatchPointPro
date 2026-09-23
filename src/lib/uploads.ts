@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { supabaseAdmin, PHOTOS_BUCKET } from "@/lib/supabase";
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
@@ -16,11 +16,17 @@ export async function savePhoto(file: File): Promise<string | null> {
   const bytes = Buffer.from(await file.arrayBuffer());
   const ext = path.extname(file.name) || "";
   const filename = `${randomUUID()}${ext}`;
-  const uploadsDir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(uploadsDir, { recursive: true });
-  await writeFile(path.join(uploadsDir, filename), bytes);
 
-  return `/uploads/${filename}`;
+  const { error } = await supabaseAdmin.storage
+    .from(PHOTOS_BUCKET)
+    .upload(filename, bytes, { contentType: file.type });
+
+  if (error) {
+    throw new Error("Could not upload photo. Please try again.");
+  }
+
+  const { data } = supabaseAdmin.storage.from(PHOTOS_BUCKET).getPublicUrl(filename);
+  return data.publicUrl;
 }
 
 export async function savePhotos(files: File[]): Promise<string[]> {

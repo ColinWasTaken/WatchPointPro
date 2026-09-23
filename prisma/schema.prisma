@@ -3,10 +3,10 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
-// SQLite has no native enum type, so role is a plain string: "homeowner" | "homewatcher"
+// role is a plain string: "homeowner" | "homewatcher"
 model User {
   id            String   @id @default(cuid())
   email         String   @unique

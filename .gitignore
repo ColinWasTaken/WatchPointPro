@@ -40,9 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# prisma / sqlite
+# prisma / sqlite (legacy local dev database, superseded by Postgres)
 /dev.db
 /dev.db-journal
-
-# user-uploaded files (local dev storage)
-/public/uploads/
