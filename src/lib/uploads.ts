@@ -37,3 +37,13 @@ export async function savePhotos(files: File[]): Promise<string[]> {
   }
   return urls;
 }
+
+// Removes a previously uploaded photo. Ignores URLs that aren't in our bucket.
+export async function deletePhoto(url: string | null) {
+  if (!url) return;
+  const marker = `/storage/v1/object/public/${PHOTOS_BUCKET}/`;
+  const index = url.indexOf(marker);
+  if (index === -1) return;
+  const objectPath = decodeURIComponent(url.slice(index + marker.length));
+  await supabaseAdmin.storage.from(PHOTOS_BUCKET).remove([objectPath]);
+}

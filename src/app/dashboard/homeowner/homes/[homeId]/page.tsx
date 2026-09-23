@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
-import { Home as HomeIcon, MapPin, NotebookPen, Users } from "lucide-react";
+import Link from "next/link";
+import { Home as HomeIcon, MapPin, NotebookPen, Pencil, Users } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { UpdatesFeed } from "@/components/updates-feed";
@@ -70,7 +71,16 @@ export default async function HomeDetailPage(
         </div>
       )}
 
-      <h1 className="mt-4 text-2xl font-bold text-ink">{home.nickname}</h1>
+      <div className="mt-4 flex items-start justify-between gap-3">
+        <h1 className="text-2xl font-bold text-ink">{home.nickname}</h1>
+        <Link
+          href={`/dashboard/homeowner/homes/${home.id}/edit`}
+          className="flex shrink-0 items-center gap-1.5 rounded-full bg-accent-soft px-3.5 py-1.5 text-sm font-semibold text-accent transition-colors hover:bg-accent hover:text-white"
+        >
+          <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
+          Edit
+        </Link>
+      </div>
       <p className="flex items-center gap-1.5 text-ink-muted">
         <MapPin className="h-4 w-4 shrink-0" strokeWidth={2} />
         {home.address}
