@@ -6,7 +6,8 @@ type Mail = { subject: string; html: string };
 // Emails a user if they have notifications on and a confirmed address. Pass a function
 // to build the message from the recipient's timezone. Never throws: a failed
 // notification must not fail the action that triggered it.
-export async function notifyUser(userId: string, mail: Mail | ((timezone: string | null) => Mail)) {
+export async function notifyUser(userId: string | null | undefined, mail: Mail | ((timezone: string | null) => Mail)) {
+  if (!userId) return; // e.g. a company-managed home whose owner has no account yet
   try {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user || !user.notifyEmail || !user.emailVerifiedAt) return;

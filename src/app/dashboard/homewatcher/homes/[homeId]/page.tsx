@@ -83,7 +83,7 @@ export default async function HomewatcherHomeDetailPage(
       </p>
       <p className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-muted">
         <Mail className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
-        {home.owner.name ?? home.owner.email}
+        {home.owner?.name ?? home.owner?.email ?? "Homeowner"}
       </p>
 
       {home.notes && (

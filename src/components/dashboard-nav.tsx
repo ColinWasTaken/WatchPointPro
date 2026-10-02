@@ -10,7 +10,8 @@ const LINKS = {
   ],
   homewatcher: [
     { href: "/dashboard/homewatcher", label: "Homes", match: (p: string) => p === "/dashboard/homewatcher" || p.startsWith("/dashboard/homewatcher/homes") },
-    { href: "/dashboard/homewatcher/clients", label: "Clients", match: (p: string) => p.startsWith("/dashboard/homewatcher/clients") },
+    { href: "/dashboard/homewatcher/clients", label: "Clients", match: (p: string) => p.startsWith("/dashboard/homewatcher/clients") || p.startsWith("/dashboard/homewatcher/properties") },
+    { href: "/dashboard/homewatcher/company", label: "Company", match: (p: string) => p.startsWith("/dashboard/homewatcher/company") },
     { href: "/dashboard/homewatcher/schedule", label: "Schedule", match: (p: string) => p.startsWith("/dashboard/homewatcher/schedule") },
     { href: "/dashboard/homewatcher/settings", label: "Settings", match: (p: string) => p.startsWith("/dashboard/homewatcher/settings") },
   ],

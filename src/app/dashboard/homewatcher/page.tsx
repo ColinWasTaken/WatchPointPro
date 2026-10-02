@@ -52,7 +52,7 @@ export default async function HomewatcherDashboardPage() {
                   </p>
                   <p className="mt-0.5 text-xs text-ink-muted">
                     Invited by{" "}
-                    {assignment.home.owner.name ?? assignment.home.owner.email}
+                    {assignment.home.owner?.name ?? assignment.home.owner?.email ?? "the homeowner"}
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -129,7 +129,7 @@ export default async function HomewatcherDashboardPage() {
               </p>
               <p className="mt-2 flex items-center gap-1 text-xs text-ink-muted">
                 <Mail className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
-                {assignment.home.owner.name ?? assignment.home.owner.email}
+                {assignment.home.owner?.name ?? assignment.home.owner?.email ?? "the homeowner"}
               </p>
               <HomeActivity
                 lastReport={assignment.home.reports[0] ?? null}

@@ -58,8 +58,27 @@ export async function deleteAccountAction(_prev: ActionState, formData: FormData
     return { error: "Password is incorrect." };
   }
 
+  // Company data outlives any one person: a member can only leave by deleting a company that is
+  // theirs alone and empty. (Team management arrives with employee invitations.)
+  const membership = await prisma.companyMember.findUnique({ where: { userId: user.id } });
+  let emptyCompanyId: string | null = null;
+  if (membership) {
+    const [members, clients, homes] = await Promise.all([
+      prisma.companyMember.count({ where: { companyId: membership.companyId } }),
+      prisma.client.count({ where: { companyId: membership.companyId } }),
+      prisma.home.count({ where: { companyId: membership.companyId } }),
+    ]);
+    if (members > 1 || clients > 0 || homes > 0) {
+      return {
+        error: "Your company still has clients, properties, or team members. Remove them first, then delete your account.",
+      };
+    }
+    emptyCompanyId = membership.companyId;
+  }
+
+  // Independent homes are deleted with the account; company-managed ones stay with the company.
   const ownedHomes = await prisma.home.findMany({
-    where: { ownerId: user.id },
+    where: { ownerId: user.id, companyId: null },
     include: { reports: true },
   });
   const ownReports = await prisma.report.findMany({ where: { homewatcherId: user.id } });
@@ -69,11 +88,13 @@ export async function deleteAccountAction(_prev: ActionState, formData: FormData
   ];
 
   await prisma.$transaction([
-    prisma.home.deleteMany({ where: { ownerId: user.id } }),
+    prisma.home.updateMany({ where: { ownerId: user.id, companyId: { not: null } }, data: { ownerId: null } }),
+    prisma.home.deleteMany({ where: { ownerId: user.id, companyId: null } }),
     prisma.message.deleteMany({ where: { OR: [{ senderId: user.id }, { recipientId: user.id }] } }),
     prisma.report.deleteMany({ where: { homewatcherId: user.id } }),
     prisma.homeAssignment.deleteMany({ where: { homewatcherId: user.id } }),
     prisma.visit.deleteMany({ where: { createdById: user.id } }),
+    ...(emptyCompanyId ? [prisma.company.delete({ where: { id: emptyCompanyId } })] : []),
     prisma.user.delete({ where: { id: user.id } }),
   ]);
   await Promise.all(photos.map((url) => deletePhoto(url)));

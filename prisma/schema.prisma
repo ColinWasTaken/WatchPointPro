@@ -8,41 +8,65 @@ datasource db {
 
 // role is a plain string: "homeowner" | "homewatcher"
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  passwordHash  String?
-  name          String?
-  role          String?
+  id              String    @id @default(cuid())
+  email           String    @unique
+  passwordHash    String?
+  name            String?
+  role            String?
   emailVerifiedAt DateTime?
-  notifyEmail   Boolean  @default(true)
-  timezone      String?
-  createdAt     DateTime @default(now())
+  notifyEmail     Boolean   @default(true)
+  timezone        String?
+  createdAt       DateTime  @default(now())
 
-  authTokens       AuthToken[]
-  visitsCreated    Visit[]
-  homes            Home[]           @relation("HomeOwner")
-  assignments      HomeAssignment[]
-  reports          Report[]
-  sentMessages     Message[]        @relation("MessageSender")
-  receivedMessages Message[]        @relation("MessageRecipient")
+  authTokens         AuthToken[]
+  visitsCreated      Visit[]
+  homes              Home[]           @relation("HomeOwner")
+  companyMembership  CompanyMember?
+  assignedProperties Home[]           @relation("HomeAssignedEmployee")
+  clientRecords      Client[]
+  assignments        HomeAssignment[]
+  reports            Report[]
+  sentMessages       Message[]        @relation("MessageSender")
+  receivedMessages   Message[]        @relation("MessageRecipient")
 }
 
+// A property. Independent homeowners own one directly (ownerId). A company-managed property
+// also has companyId + clientId; its ownerId stays null until the client has an account.
 model Home {
   id        String   @id @default(cuid())
-  ownerId   String
-  owner     User     @relation("HomeOwner", fields: [ownerId], references: [id])
-  address   String
+  ownerId   String?
+  owner     User?    @relation("HomeOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  address   String // one-line full address (street, city, state zip) shown throughout the app
   nickname  String
   photoUrl  String?
   notes     String?
   createdAt DateTime @default(now())
 
-  assignments     HomeAssignment[]
-  invites         HomeInvite[]
-  visits          Visit[]
-  checklistItems  ChecklistItem[]
-  reports         Report[]
-  messages        Message[]
+  // Company-managed structured address (all null for independent homes).
+  street    String?
+  city      String?
+  state     String?
+  zip       String?
+  latitude  Float?
+  longitude Float?
+
+  companyId          String?
+  company            Company? @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  clientId           String?
+  client             Client?  @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  assignedEmployeeId String?
+  assignedEmployee   User?    @relation("HomeAssignedEmployee", fields: [assignedEmployeeId], references: [id], onDelete: SetNull)
+
+  assignments    HomeAssignment[]
+  invites        HomeInvite[]
+  visits         Visit[]
+  checklistItems ChecklistItem[]
+  reports        Report[]
+  messages       Message[]
+
+  @@index([companyId])
+  @@index([clientId])
+  @@index([assignedEmployeeId])
 }
 
 model HomeAssignment {
@@ -67,16 +91,16 @@ model ChecklistItem {
 }
 
 model Report {
-  id                String   @id @default(cuid())
-  homeId            String
-  home              Home     @relation(fields: [homeId], references: [id], onDelete: Cascade)
-  homewatcherId     String
-  homewatcher       User     @relation(fields: [homewatcherId], references: [id])
-  checklistResults  String   // JSON string: { [checklistItemId]: boolean }
-  status            String   @default("ok") // ok | attention | urgent
-  notes             String?
-  photoUrls         String   @default("[]") // JSON string array
-  createdAt         DateTime @default(now())
+  id               String   @id @default(cuid())
+  homeId           String
+  home             Home     @relation(fields: [homeId], references: [id], onDelete: Cascade)
+  homewatcherId    String
+  homewatcher      User     @relation(fields: [homewatcherId], references: [id])
+  checklistResults String // JSON string: { [checklistItemId]: boolean }
+  status           String   @default("ok") // ok | attention | urgent
+  notes            String?
+  photoUrls        String   @default("[]") // JSON string array
+  createdAt        DateTime @default(now())
 }
 
 model Message {
@@ -130,4 +154,55 @@ model Visit {
 
   @@index([homeId, scheduledFor])
   @@index([scheduledFor])
+}
+
+// A home-watch company: the tenant that owns clients, properties, and (later) inspections.
+model Company {
+  id          String   @id @default(cuid())
+  name        String
+  phone       String?
+  email       String?
+  website     String?
+  serviceArea String?
+  address     String?
+  logoUrl     String?
+  brandColor  String? // #rrggbb
+  createdAt   DateTime @default(now())
+
+  members CompanyMember[]
+  clients Client[]
+  homes   Home[]
+}
+
+// Staff of a company. One company per user for now. role: admin | employee
+model CompanyMember {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String   @default("employee")
+  createdAt DateTime @default(now())
+
+  @@index([companyId])
+}
+
+// A homeowner the company serves. userId is set once they have a linked account.
+model Client {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  firstName String
+  lastName  String
+  email     String? // stored lowercase
+  phone     String?
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  homes Home[]
+
+  @@unique([companyId, email])
+  @@index([companyId])
+  @@index([userId])
 }

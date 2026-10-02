@@ -58,6 +58,9 @@ export async function sendMessageAction(
     if (!isAssigned) {
       return { error: "You are not assigned to this home." };
     }
+    if (!home.ownerId) {
+      return { error: "This homeowner doesn't have an account yet." };
+    }
     recipientId = home.ownerId;
   } else {
     return { error: "Unauthorized." };

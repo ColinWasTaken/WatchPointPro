@@ -70,6 +70,9 @@ export async function inviteHomewatcherAction(
   if (!home || home.ownerId !== session.user.id) {
     return { error: "Home not found." };
   }
+  if (home.companyId) {
+    return { error: "This property is managed by your home-watch company, so they handle changes to it." };
+  }
 
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   if (!email) {
@@ -129,6 +132,9 @@ export async function updateHomeAction(
   if (!home || home.ownerId !== session.user.id) {
     return { error: "Home not found." };
   }
+  if (home.companyId) {
+    return { error: "This property is managed by your home-watch company, so they handle changes to it." };
+  }
 
   const nickname = String(formData.get("nickname") ?? "").trim();
   const address = String(formData.get("address") ?? "").trim();
@@ -176,6 +182,9 @@ export async function deleteHomeAction(
   const home = await prisma.home.findUnique({ where: { id: homeId }, include: { reports: true } });
   if (!home || home.ownerId !== session.user.id) {
     return { error: "Home not found." };
+  }
+  if (home.companyId) {
+    return { error: "This property is managed by your home-watch company, so they handle changes to it." };
   }
   if (String(formData.get("confirm") ?? "").trim() !== home.nickname) {
     return { error: `Type "${home.nickname}" exactly to confirm.` };
