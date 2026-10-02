@@ -47,7 +47,7 @@ export async function requireCompany(): Promise<CompanyContext> {
 // For pages and actions that only company admins may use.
 export async function requireCompanyAdmin(): Promise<CompanyContext> {
   const ctx = await requireCompany();
-  if (ctx.role !== "admin") redirect("/dashboard/homewatcher/clients");
+  if (ctx.role !== "admin") redirect("/dashboard/homewatcher");
   return ctx;
 }
 

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Building2 } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { findOpenInvitation } from "@/lib/invitations";
+import { findOpenInvitation, isEmptySoloCompany } from "@/lib/invitations";
 import { clientName } from "@/lib/fields";
 import { acceptInvitationAction, signUpFromInvitationAction } from "@/lib/actions/invitations";
 import { AcceptInvitationButton, InvitationSignUpForm, SwitchAccountButton } from "./invite-forms";
@@ -33,7 +33,7 @@ export default async function InvitePage(props: PageProps<"/invite">) {
       <Card>
         <h1 className="mb-2 text-xl font-bold text-ink">Invitation not available</h1>
         <p className="mb-4 text-sm text-ink-muted">
-          This invitation link is invalid or has expired. Ask your home-watch company to send a new one. If you already
+          This invitation link is invalid or has expired. Ask whoever invited you to send a new one. If you already
           accepted it, just sign in.
         </p>
         <Link href={session ? "/dashboard" : "/login"} className="text-sm font-semibold text-accent">
@@ -43,24 +43,52 @@ export default async function InvitePage(props: PageProps<"/invite">) {
     );
   }
 
-  const { company, client } = invitation;
+  const { company } = invitation;
+  const employee = invitation.kind === "employee";
   const account = await prisma.user.findUnique({
     where: { email: invitation.email },
     select: { id: true, role: true },
   });
   const invitePath = `/invite?token=${encodeURIComponent(value)}`;
+  const accept = <AcceptInvitationButton action={acceptInvitationAction.bind(null, value)} />;
 
   let body: ReactNode;
   if (session && account && session.user.id === account.id) {
-    body =
-      account.role === "homeowner" ? (
-        <AcceptInvitationButton action={acceptInvitationAction.bind(null, value)} />
-      ) : (
+    if (account.role !== (employee ? "homewatcher" : "homeowner")) {
+      body = (
         <p className="text-sm text-danger">
-          {invitation.email} is a homewatcher account, so it can&apos;t be connected as a homeowner. Ask {company.name} to
-          invite a different email address.
+          {employee
+            ? `${invitation.email} is a homeowner account, so it can't join a company team.`
+            : `${invitation.email} is a homewatcher account, so it can't be connected as a homeowner.`}{" "}
+          Ask {company.name} to invite a different email address.
         </p>
       );
+    } else if (employee) {
+      // Someone belongs to one company at most; an empty company of their own gets replaced.
+      const current = await prisma.companyMember.findUnique({ where: { userId: account.id }, include: { company: true } });
+      const other = current && current.companyId !== company.id ? current.company : null;
+      if (other && !(await isEmptySoloCompany(prisma, other.id))) {
+        body = (
+          <p className="text-sm text-ink-muted">
+            You&apos;re already on <span className="font-semibold text-ink">{other.name}</span>&apos;s team, and you can
+            only belong to one company. Ask {company.name} to invite a different email address.
+          </p>
+        );
+      } else {
+        body = (
+          <div className="flex flex-col gap-4">
+            {other && (
+              <p className="text-sm text-ink-muted">
+                Joining replaces your empty company, <span className="font-semibold text-ink">{other.name}</span>.
+              </p>
+            )}
+            {accept}
+          </div>
+        );
+      }
+    } else {
+      body = accept;
+    }
   } else if (session) {
     body = (
       <div className="flex flex-col gap-4">
@@ -91,7 +119,7 @@ export default async function InvitePage(props: PageProps<"/invite">) {
       <InvitationSignUpForm
         action={signUpFromInvitationAction.bind(null, value)}
         email={invitation.email}
-        defaultName={clientName(client)}
+        defaultName={invitation.kind === "client" ? clientName(invitation.client) : ""}
       />
     );
   }
@@ -112,11 +140,24 @@ export default async function InvitePage(props: PageProps<"/invite">) {
             <Building2 className="h-7 w-7" strokeWidth={1.75} />
           </div>
         )}
-        <h1 className="mt-3 text-xl font-bold text-ink">Hi {client.firstName}, you&apos;re invited</h1>
-        <p className="mt-2 text-sm text-ink-muted">
-          <span className="font-semibold text-ink">{company.name}</span> uses WatchPointPro to provide digital home-check
-          reports. Create your account to view inspections, photos, videos, and property updates.
-        </p>
+        {invitation.kind === "client" ? (
+          <>
+            <h1 className="mt-3 text-xl font-bold text-ink">Hi {invitation.client.firstName}, you&apos;re invited</h1>
+            <p className="mt-2 text-sm text-ink-muted">
+              <span className="font-semibold text-ink">{company.name}</span> uses WatchPointPro to provide digital
+              home-check reports. Create your account to view inspections, photos, videos, and property updates.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1 className="mt-3 text-xl font-bold text-ink">Join {company.name}</h1>
+            <p className="mt-2 text-sm text-ink-muted">
+              {invitation.invitedBy?.name ?? company.name} invited you to join the team on WatchPointPro, where
+              you&apos;ll see your assigned properties and home checks
+              {invitation.role === "admin" ? ", and help run the company as an admin" : ""}.
+            </p>
+          </>
+        )}
       </div>
       {body}
     </Card>

@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 
-type Style = "datetime" | "date" | "weekday";
+type Style = "datetime" | "date" | "weekday" | "time";
 
 const OPTIONS: Record<Style, Intl.DateTimeFormatOptions> = {
   datetime: { dateStyle: "medium", timeStyle: "short" },
   date: { dateStyle: "medium" },
   weekday: { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" },
+  time: { hour: "numeric", minute: "2-digit" },
 };
 
 // Formats in the viewer's own timezone (server components only know the server's).

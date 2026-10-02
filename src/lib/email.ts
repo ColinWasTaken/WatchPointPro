@@ -127,6 +127,19 @@ export const emails = {
     subject: `${oneLine(client)} accepted your invitation`,
     html: layout("Invitation accepted", `<b>${esc(client)}</b> created their WatchPointPro account and can now see their properties.`, "View client", link),
   }),
+  employeeInvite: (company: string, inviter: string, link: string, days: number) => ({
+    subject: `${oneLine(inviter)} invited you to join ${oneLine(company)} on WatchPointPro`,
+    html: layout(
+      `Join ${esc(company)}`,
+      `${esc(inviter)} invited you to join the <b>${esc(company)}</b> team on WatchPointPro, where you'll see your assigned properties and home checks.<br><br>This invitation expires in ${days} days.`,
+      "Accept invitation",
+      link,
+    ),
+  }),
+  employeeJoined: (name: string, company: string, link: string) => ({
+    subject: `${oneLine(name)} joined your team`,
+    html: layout("New team member", `<b>${esc(name)}</b> accepted your invitation and joined ${esc(company)} on WatchPointPro.`, "View team", link),
+  }),
   inviteExisting: (ownerName: string, homeName: string, link: string) => ({
     subject: `${ownerName} invited you to watch ${homeName}`,
     html: layout("New invitation", `${esc(ownerName)} invited you to be a homewatcher for <b>${esc(homeName)}</b>. Sign in to accept or decline.`, "View invitation", link),

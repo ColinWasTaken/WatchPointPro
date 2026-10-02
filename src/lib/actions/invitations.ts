@@ -75,6 +75,7 @@ export async function removeClientAccessAction(clientId: string) {
 // ---------- Homeowner side ----------
 
 const invitePath = (token: string) => `/invite?token=${encodeURIComponent(token)}`;
+const homeFor = (kind: string) => (kind === "employee" ? "/dashboard/homewatcher?joined=1" : "/dashboard/homeowner?joined=1");
 
 // Accepts for the signed-in account; the invitation must be addressed to that account's email.
 export async function acceptInvitationAction(token: string): Promise<ActionState> {
@@ -93,11 +94,11 @@ export async function acceptInvitationAction(token: string): Promise<ActionState
     throw err;
   }
 
-  revalidatePath("/dashboard/homeowner", "layout");
-  redirect("/dashboard/homeowner?joined=1");
+  revalidatePath("/dashboard", "layout");
+  redirect(homeFor(invitation.kind));
 }
 
-// Creates the homeowner's account straight from the invitation link, then signs them in.
+// Creates the account straight from the invitation link, then signs them in.
 export async function signUpFromInvitationAction(
   token: string,
   _prev: ActionState,
@@ -126,6 +127,6 @@ export async function signUpFromInvitationAction(
     throw err;
   }
 
-  await signIn("credentials", { email: invitation.email, password, redirectTo: "/dashboard/homeowner?joined=1" });
+  await signIn("credentials", { email: invitation.email, password, redirectTo: homeFor(invitation.kind) });
   return {};
 }

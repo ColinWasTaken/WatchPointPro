@@ -1,17 +1,17 @@
 import Link from "next/link";
 import { Home as HomeIcon } from "lucide-react";
 import { SignOutButton } from "@/app/dashboard/sign-out-button";
-import { DashboardNav } from "./dashboard-nav";
+import { DashboardNav, type NavVariant } from "./dashboard-nav";
 import { TimezoneSync } from "./timezone-sync";
 
 export function DashboardHeader({
   homeHref,
   userEmail,
-  role,
+  nav,
 }: {
   homeHref: string;
   userEmail: string;
-  role: "homeowner" | "homewatcher";
+  nav: NavVariant;
 }) {
   return (
     <>
@@ -28,7 +28,7 @@ export function DashboardHeader({
         <SignOutButton />
       </div>
     </header>
-    <DashboardNav role={role} />
+    <DashboardNav variant={nav} />
     </>
   );
 }

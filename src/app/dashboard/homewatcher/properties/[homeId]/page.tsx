@@ -3,6 +3,7 @@ import { MapPin } from "lucide-react";
 import { BackLink } from "@/components/back-link";
 import { PropertyForm } from "@/components/company-forms";
 import { ConfirmButton } from "@/components/confirm-button";
+import { VisitsSection } from "@/components/visits-section";
 import { companyEmployees, getPropertyOr404, isAdmin, requireCompany } from "@/lib/authz";
 import { clientName } from "@/lib/fields";
 import { deletePropertyAction, updatePropertyAction } from "@/lib/actions/company";
@@ -43,9 +44,17 @@ export default async function PropertyPage(props: PageProps<"/dashboard/homewatc
           : "No team member assigned"}
       </p>
 
+      <VisitsSection
+        homeId={property.id}
+        title="Scheduled checks"
+        submitLabel="Schedule check"
+        canCancel={(visit) => admin || visit.createdById === ctx.userId}
+      />
+
       {admin ? (
         <>
-          <div className="mt-6">
+          <h2 className="mb-3 mt-8 text-lg font-bold text-ink">Property details</h2>
+          <div>
             <PropertyForm
               action={updatePropertyAction.bind(null, property.id)}
               submitLabel="Save changes"

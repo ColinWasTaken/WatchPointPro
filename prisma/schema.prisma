@@ -211,16 +211,18 @@ model Client {
 }
 
 // An emailed invitation to join a company. kind "client" links the homeowner account that accepts
-// it to the Client record and that client's properties. Only the SHA-256 hash of the token is
-// stored, and only an account with the invited (verified) email address can accept it.
+// it to the Client record and that client's properties; kind "employee" adds the account to the
+// company's team with the given role. Only the SHA-256 hash of the token is stored, and only an
+// account with the invited (verified) email address can accept it.
 model Invitation {
   id          String    @id @default(cuid())
   companyId   String
   company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  kind        String    @default("client") // client (employee invitations will reuse this table)
+  kind        String    @default("client") // client | employee
   clientId    String?
   client      Client?   @relation(fields: [clientId], references: [id], onDelete: Cascade)
   email       String // lowercase
+  role        String? // employee invitations: admin | employee
   tokenHash   String    @unique
   invitedById String?
   invitedBy   User?     @relation("InvitationsSent", fields: [invitedById], references: [id], onDelete: SetNull)

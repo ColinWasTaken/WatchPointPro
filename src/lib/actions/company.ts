@@ -94,7 +94,7 @@ export async function createCompanyAction(_prev: ActionState, formData: FormData
   });
 
   revalidatePath("/dashboard/homewatcher", "layout");
-  redirect("/dashboard/homewatcher/clients");
+  redirect("/dashboard/homewatcher");
 }
 
 export async function updateCompanyAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
@@ -296,6 +296,13 @@ export async function createPropertyAction(
 
   revalidatePath("/dashboard/homewatcher/clients");
   redirect(`/dashboard/homewatcher/properties/${home.id}`);
+}
+
+// The Properties page variant of createPropertyAction: the client comes from the form.
+export async function createPropertyFromFormAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const clientId = cleanText(formData.get("clientId"), 40);
+  if (!clientId) return { error: "Choose a client." };
+  return createPropertyAction(clientId, _prev, formData);
 }
 
 export async function updatePropertyAction(

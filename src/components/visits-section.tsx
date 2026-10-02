@@ -4,7 +4,18 @@ import { deleteVisitAction } from "@/lib/actions/visits";
 import { LocalTime } from "./local-time";
 import { VisitForm } from "./visit-form";
 
-export async function VisitsSection({ homeId }: { homeId: string }) {
+export async function VisitsSection({
+  homeId,
+  title = "Visit schedule",
+  submitLabel,
+  canCancel = () => true,
+}: {
+  homeId: string;
+  title?: string;
+  submitLabel?: string;
+  // Which visits to show a cancel button for; the action enforces the same rule.
+  canCancel?: (visit: { createdById: string }) => boolean;
+}) {
   const visits = await prisma.visit.findMany({
     where: { homeId, scheduledFor: { gte: new Date(Date.now() - 2 * 60 * 60 * 1000) } },
     orderBy: { scheduledFor: "asc" },
@@ -16,7 +27,7 @@ export async function VisitsSection({ homeId }: { homeId: string }) {
     <div className="mt-8">
       <h2 className="flex items-center gap-1.5 text-lg font-bold text-ink">
         <CalendarDays className="h-4 w-4 text-accent" strokeWidth={2} />
-        Visit schedule
+        {title}
       </h2>
       {visits.length === 0 ? (
         <p className="mt-2 text-sm text-ink-muted">No upcoming visits.</p>
@@ -32,16 +43,18 @@ export async function VisitsSection({ homeId }: { homeId: string }) {
                   {v.note ? `${v.note} · ` : ""}added by {v.createdBy.name ?? v.createdBy.email}
                 </p>
               </div>
-              <form action={deleteVisitAction.bind(null, v.id)}>
-                <button aria-label="Cancel visit" className="text-ink-muted hover:text-danger">
-                  <X className="h-4 w-4" strokeWidth={2} />
-                </button>
-              </form>
+              {canCancel(v) && (
+                <form action={deleteVisitAction.bind(null, v.id)}>
+                  <button aria-label="Cancel visit" className="text-ink-muted hover:text-danger">
+                    <X className="h-4 w-4" strokeWidth={2} />
+                  </button>
+                </form>
+              )}
             </li>
           ))}
         </ul>
       )}
-      <VisitForm homeId={homeId} />
+      <VisitForm homeId={homeId} submitLabel={submitLabel} />
     </div>
   );
 }

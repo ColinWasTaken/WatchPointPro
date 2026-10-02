@@ -21,14 +21,18 @@ export async function GET(request: Request) {
   });
 
   for (const visit of visits) {
+    // Independent homes: their accepted homewatchers. Company properties: the assigned employee.
+    const recipients = new Set(visit.home.assignments.map((a) => a.homewatcherId));
+    if (visit.home.assignedEmployeeId) recipients.add(visit.home.assignedEmployeeId);
+    const path = visit.home.companyId ? `properties/${visit.homeId}` : `homes/${visit.homeId}`;
     await Promise.all(
-      visit.home.assignments.map((a) =>
-        notifyUser(a.homewatcherId, (tz) =>
+      [...recipients].map((id) =>
+        notifyUser(id, (tz) =>
           emails.visitReminder(
             visit.home.nickname,
             visit.home.address,
             formatWhen(visit.scheduledFor, tz),
-            `${appUrl()}/dashboard/homewatcher/homes/${visit.homeId}`,
+            `${appUrl()}/dashboard/homewatcher/${path}`,
           ),
         ),
       ),

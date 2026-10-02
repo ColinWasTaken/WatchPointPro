@@ -158,11 +158,14 @@ export function PropertyForm({
   action,
   submitLabel,
   employees,
+  clients,
   property,
 }: {
   action: Action;
   submitLabel: string;
   employees: { id: string; name: string }[];
+  // When given, the form asks which client the property belongs to.
+  clients?: { id: string; name: string }[];
   property?: {
     nickname: string;
     street: string | null;
@@ -178,6 +181,21 @@ export function PropertyForm({
 }) {
   return (
     <FormShell action={action} submitLabel={submitLabel}>
+      {clients && (
+        <label className={labelClass}>
+          Client
+          <select name="clientId" required defaultValue="" className={inputClass}>
+            <option value="" disabled>
+              Choose a client
+            </option>
+            {clients.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <label className={labelClass}>
         Nickname (optional)
         <input name="nickname" defaultValue={property?.nickname} placeholder="e.g. Palm Ave house" className={inputClass} />
@@ -253,6 +271,34 @@ export function SendInvitationButton({ action, label }: { action: () => Promise<
       </button>
       {state.error && <p className="text-sm text-danger">{state.error}</p>}
       {state.success && <p className="text-sm text-accent">{state.success}</p>}
+    </form>
+  );
+}
+
+export function InviteMemberForm({ action }: { action: Action }) {
+  const [state, formAction, pending] = useActionState(action, {});
+  return (
+    <form action={formAction} className="flex flex-col gap-3 rounded-3xl bg-surface p-5 shadow-sm">
+      <h2 className="font-bold text-ink">Invite a team member</h2>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <input name="email" type="email" required placeholder="name@example.com" aria-label="Email" className={`${inputClass} flex-1`} />
+        <select name="role" defaultValue="employee" aria-label="Role" className={inputClass}>
+          <option value="employee">Team member</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <p className="text-xs text-ink-muted">
+        Team members see the properties assigned to them. Admins also manage clients, properties, and the team.
+      </p>
+      {state.error && <p className="text-sm text-danger">{state.error}</p>}
+      {state.success && <p className="text-sm text-accent">{state.success}</p>}
+      <button
+        type="submit"
+        disabled={pending}
+        className="self-start rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-strong disabled:opacity-60"
+      >
+        {pending ? "Sending…" : "Send invitation"}
+      </button>
     </form>
   );
 }

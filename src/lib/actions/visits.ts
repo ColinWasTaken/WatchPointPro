@@ -6,10 +6,14 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { appUrl, emails, formatWhen } from "@/lib/email";
 import { notifyUser } from "@/lib/notify";
+import { findProperty, getCompanyContext, isAdmin } from "@/lib/authz";
 
 export type ActionState = { error?: string; success?: string };
 
-// Returns the home if the signed-in user owns it or is an accepted homewatcher on it.
+// Who may schedule at a home, and whether they may cancel anyone's visit or only their own:
+//   independent home – its owner (any visit) or an accepted homewatcher (own visits)
+//   company property – a company member who can see it: admins (any visit), the assigned employee
+//                      (own visits). The homeowner doesn't schedule here; the company does.
 async function homeAccess(homeId: string) {
   const session = await auth();
   if (!session) redirect("/login");
@@ -20,16 +24,22 @@ async function homeAccess(homeId: string) {
   });
   if (!home) return null;
 
-  const isOwner = home.ownerId === session.user.id;
-  const isWatcher = home.assignments.some((a) => a.homewatcherId === session.user.id);
-  if (!isOwner && !isWatcher) return null;
-
-  return { session, home, isOwner };
+  if (home.companyId) {
+    const ctx = await getCompanyContext(session.user.id);
+    if (!ctx || !(await findProperty(ctx, home.id))) return null;
+    return { session, home, as: "company" as const, canCancelAny: isAdmin(ctx) };
+  }
+  if (home.ownerId === session.user.id) return { session, home, as: "owner" as const, canCancelAny: true };
+  if (home.assignments.some((a) => a.homewatcherId === session.user.id)) {
+    return { session, home, as: "watcher" as const, canCancelAny: false };
+  }
+  return null;
 }
 
 function revalidateVisitPages(homeId: string) {
   revalidatePath(`/dashboard/homeowner/homes/${homeId}`);
   revalidatePath(`/dashboard/homewatcher/homes/${homeId}`);
+  revalidatePath(`/dashboard/homewatcher/properties/${homeId}`);
   revalidatePath("/dashboard/homeowner");
   revalidatePath("/dashboard/homewatcher");
   revalidatePath("/dashboard/homewatcher/schedule");
@@ -42,8 +52,7 @@ export async function scheduleVisitAction(
 ): Promise<ActionState> {
   const access = await homeAccess(homeId);
   if (!access) return { error: "Home not found." };
-  const { session, home, isOwner } = access;
-  if (home.companyId) return { error: "Your home-watch company schedules visits for this property." };
+  const { session, home, as } = access;
 
   const when = new Date(String(formData.get("when") ?? ""));
   if (Number.isNaN(when.getTime())) return { error: "Pick a date and time." };
@@ -54,28 +63,33 @@ export async function scheduleVisitAction(
     data: { homeId, scheduledFor: when, note: note || null, createdById: session.user.id },
   });
 
+  // Tell the other side: owner → homewatchers, homewatcher → owner, company → the assigned employee.
+  const [recipients, path] =
+    as === "owner"
+      ? [home.assignments.map((a) => a.homewatcherId), `homewatcher/homes/${homeId}`]
+      : as === "watcher"
+        ? [[home.ownerId], `homeowner/homes/${homeId}`]
+        : [[home.assignedEmployeeId], `homewatcher/properties/${homeId}`];
   const by = session.user.name ?? "Someone";
-  const recipients = isOwner ? home.assignments.map((a) => a.homewatcherId) : [home.ownerId];
-  const path = isOwner ? "homewatcher" : "homeowner";
   await Promise.all(
-    recipients.map((id) =>
-      notifyUser(id, (tz) =>
-        emails.visitScheduled(by, home.nickname, formatWhen(when, tz), `${appUrl()}/dashboard/${path}/homes/${homeId}`),
+    recipients
+      .filter((id) => id && id !== session.user.id)
+      .map((id) =>
+        notifyUser(id, (tz) =>
+          emails.visitScheduled(by, home.nickname, formatWhen(when, tz), `${appUrl()}/dashboard/${path}`),
+        ),
       ),
-    ),
   );
 
   revalidateVisitPages(homeId);
-  return { success: "Visit scheduled." };
+  return { success: as === "company" ? "Check scheduled." : "Visit scheduled." };
 }
 
 export async function deleteVisitAction(visitId: string) {
-  const session = await auth();
-  if (!session) redirect("/login");
-
-  const visit = await prisma.visit.findUnique({ where: { id: visitId }, include: { home: true } });
-  if (!visit) return;
-  if (visit.createdById !== session.user.id && (visit.home.ownerId !== session.user.id || visit.home.companyId)) return;
+  const visit = await prisma.visit.findUnique({ where: { id: visitId } });
+  const access = visit ? await homeAccess(visit.homeId) : null;
+  if (!visit || !access) return;
+  if (!access.canCancelAny && visit.createdById !== access.session.user.id) return;
 
   await prisma.visit.delete({ where: { id: visitId } });
   revalidateVisitPages(visit.homeId);

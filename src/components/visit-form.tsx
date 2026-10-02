@@ -6,7 +6,7 @@ import { scheduleVisitAction, type ActionState } from "@/lib/actions/visits";
 
 const initialState: ActionState = {};
 
-export function VisitForm({ homeId }: { homeId: string }) {
+export function VisitForm({ homeId, submitLabel = "Schedule visit" }: { homeId: string; submitLabel?: string }) {
   const action = scheduleVisitAction.bind(null, homeId);
   const [state, formAction, pending] = useActionState(action, initialState);
   const ref = useRef<HTMLFormElement>(null);
@@ -46,7 +46,7 @@ export function VisitForm({ homeId }: { homeId: string }) {
         className="flex items-center gap-1.5 self-start rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-strong disabled:opacity-60"
       >
         <CalendarPlus className="h-4 w-4" strokeWidth={2} />
-        {pending ? "Scheduling…" : "Schedule visit"}
+        {pending ? "Scheduling…" : submitLabel}
       </button>
       {state.error && <p className="text-sm text-danger">{state.error}</p>}
       {state.success && <p className="text-sm text-accent">{state.success}</p>}
