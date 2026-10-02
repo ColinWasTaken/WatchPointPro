@@ -43,6 +43,7 @@ export async function scheduleVisitAction(
   const access = await homeAccess(homeId);
   if (!access) return { error: "Home not found." };
   const { session, home, isOwner } = access;
+  if (home.companyId) return { error: "Your home-watch company schedules visits for this property." };
 
   const when = new Date(String(formData.get("when") ?? ""));
   if (Number.isNaN(when.getTime())) return { error: "Pick a date and time." };
@@ -74,7 +75,7 @@ export async function deleteVisitAction(visitId: string) {
 
   const visit = await prisma.visit.findUnique({ where: { id: visitId }, include: { home: true } });
   if (!visit) return;
-  if (visit.createdById !== session.user.id && visit.home.ownerId !== session.user.id) return;
+  if (visit.createdById !== session.user.id && (visit.home.ownerId !== session.user.id || visit.home.companyId)) return;
 
   await prisma.visit.delete({ where: { id: visitId } });
   revalidateVisitPages(visit.homeId);

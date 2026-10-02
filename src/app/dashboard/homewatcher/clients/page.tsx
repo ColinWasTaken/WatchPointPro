@@ -16,7 +16,10 @@ export default async function ClientsPage() {
     ? await prisma.client.findMany({
         where: clientScope(ctx),
         orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
-        include: { homes: { where: propertyScope(ctx), orderBy: { createdAt: "asc" } } },
+        include: {
+          homes: { where: propertyScope(ctx), orderBy: { createdAt: "asc" } },
+          invitations: { where: { acceptedAt: null, expiresAt: { gt: new Date() } }, select: { id: true }, take: 1 },
+        },
       })
     : [];
 
@@ -77,9 +80,16 @@ export default async function ClientsPage() {
           {companyClients.map((c) => (
             <li key={c.id} className="rounded-3xl bg-surface p-4 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-2">
-                <Link href={`/dashboard/homewatcher/clients/${c.id}`} className="font-bold text-ink hover:text-accent">
-                  {clientName(c)}
-                </Link>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link href={`/dashboard/homewatcher/clients/${c.id}`} className="font-bold text-ink hover:text-accent">
+                    {clientName(c)}
+                  </Link>
+                  {c.userId ? (
+                    <span className="rounded-full bg-accent-soft px-2.5 py-0.5 text-[11px] font-semibold text-accent">Has access</span>
+                  ) : c.invitations.length > 0 ? (
+                    <span className="rounded-full bg-pending-soft px-2.5 py-0.5 text-[11px] font-semibold text-pending">Invited</span>
+                  ) : null}
+                </div>
                 <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold text-accent">
                   {c.homes.length} {c.homes.length === 1 ? "property" : "properties"}
                 </span>

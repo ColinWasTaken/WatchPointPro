@@ -1,24 +1,31 @@
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Home as HomeIcon, MapPin, Plus, Users } from "lucide-react";
+import { Building2, Home as HomeIcon, MapPin, Plus, Users } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { HomeActivity } from "@/components/home-activity";
 
-export default async function HomeownerDashboardPage() {
+export default async function HomeownerDashboardPage(props: PageProps<"/dashboard/homeowner">) {
+  const { joined } = await props.searchParams;
   const session = await auth();
   if (!session) redirect("/login");
 
   const homes = await prisma.home.findMany({
     where: { ownerId: session.user.id },
     include: {
+      company: { select: { name: true } },
       assignments: { where: { status: "accepted" } },
       reports: { orderBy: { createdAt: "desc" }, take: 1 },
       visits: { where: { scheduledFor: { gte: new Date() } }, orderBy: { scheduledFor: "asc" }, take: 1 },
     },
     orderBy: { createdAt: "desc" },
   });
+  // Companies this homeowner is a client of, to explain an empty list after joining one.
+  const companies =
+    homes.length === 0
+      ? await prisma.client.findMany({ where: { userId: session.user.id }, select: { company: { select: { name: true } } } })
+      : [];
 
   return (
     <div>
@@ -33,14 +40,21 @@ export default async function HomeownerDashboardPage() {
         </Link>
       </div>
 
+      {joined && (
+        <p className="mt-4 rounded-2xl bg-accent-soft px-4 py-3 text-sm text-accent">
+          You&apos;re all set. Reports from your home-watch company will show up here.
+        </p>
+      )}
+
       {homes.length === 0 ? (
         <div className="mt-10 flex flex-col items-center gap-3 rounded-3xl bg-surface px-6 py-14 text-center shadow-sm">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-soft text-accent">
             <HomeIcon className="h-6 w-6" strokeWidth={1.75} />
           </div>
           <p className="text-ink-muted">
-            You haven&apos;t added any homes yet. Add your first home to get
-            started.
+            {companies.length > 0
+              ? `${companies.map((c) => c.company.name).join(" and ")} hasn't added your property yet. It will show up here once they do.`
+              : "You haven't added any homes yet. Add your first home to get started."}
           </p>
         </div>
       ) : (
@@ -69,12 +83,19 @@ export default async function HomeownerDashboardPage() {
                 <MapPin className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
                 {home.address}
               </p>
-              <p className="mt-2 flex items-center gap-1 text-xs font-semibold text-accent">
-                <Users className="h-3.5 w-3.5" strokeWidth={2} />
-                {home.assignments.length === 0
-                  ? "No homewatcher assigned"
-                  : `${home.assignments.length} homewatcher${home.assignments.length > 1 ? "s" : ""} assigned`}
-              </p>
+              {home.company ? (
+                <p className="mt-2 flex items-center gap-1 text-xs font-semibold text-accent">
+                  <Building2 className="h-3.5 w-3.5" strokeWidth={2} />
+                  Managed by {home.company.name}
+                </p>
+              ) : (
+                <p className="mt-2 flex items-center gap-1 text-xs font-semibold text-accent">
+                  <Users className="h-3.5 w-3.5" strokeWidth={2} />
+                  {home.assignments.length === 0
+                    ? "No homewatcher assigned"
+                    : `${home.assignments.length} homewatcher${home.assignments.length > 1 ? "s" : ""} assigned`}
+                </p>
+              )}
               <HomeActivity lastReport={home.reports[0] ?? null} nextVisit={home.visits[0]?.scheduledFor ?? null} />
             </Link>
           ))}

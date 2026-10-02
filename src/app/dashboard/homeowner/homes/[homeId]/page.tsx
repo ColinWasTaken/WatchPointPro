@@ -9,6 +9,7 @@ import { MessageComposer } from "@/components/message-composer";
 import { VisitsSection } from "@/components/visits-section";
 import { StatusBadge } from "@/components/status-badge";
 import { BackLink } from "@/components/back-link";
+import { CompanyCard } from "@/components/company-card";
 import { ConfirmButton } from "@/components/confirm-button";
 import { removeAssignmentAction, cancelInviteAction } from "@/lib/actions/homes";
 import { InviteForm } from "./invite-form";
@@ -24,6 +25,7 @@ export default async function HomeDetailPage(
   const home = await prisma.home.findUnique({
     where: { id: homeId },
     include: {
+      company: true,
       assignments: {
         include: { homewatcher: true },
         orderBy: { createdAt: "desc" },
@@ -35,6 +37,9 @@ export default async function HomeDetailPage(
   if (!home || home.ownerId !== session.user.id) {
     notFound();
   }
+  // Company-managed properties are run by the company: no editing, homewatcher invites, visit
+  // scheduling, messaging, or deleting from here.
+  const managed = home.company;
 
   const [reports, messages] = await Promise.all([
     prisma.report.findMany({
@@ -77,6 +82,7 @@ export default async function HomeDetailPage(
 
       <div className="mt-4 flex items-start justify-between gap-3">
         <h1 className="text-2xl font-bold text-ink">{home.nickname}</h1>
+        {!managed && (
         <Link
           href={`/dashboard/homeowner/homes/${home.id}/edit`}
           className="flex shrink-0 items-center gap-1.5 rounded-full bg-accent-soft px-3.5 py-1.5 text-sm font-semibold text-accent transition-colors hover:bg-accent hover:text-white"
@@ -84,13 +90,16 @@ export default async function HomeDetailPage(
           <Pencil className="h-3.5 w-3.5" strokeWidth={2} />
           Edit
         </Link>
+        )}
       </div>
       <p className="flex items-center gap-1.5 text-ink-muted">
         <MapPin className="h-4 w-4 shrink-0" strokeWidth={2} />
         {home.address}
       </p>
 
-      {home.notes && (
+      {managed && <CompanyCard company={managed} />}
+
+      {!managed && home.notes && (
         <div className="mt-4 rounded-2xl bg-surface p-4 shadow-sm">
           <h2 className="flex items-center gap-1.5 text-sm font-semibold text-ink">
             <NotebookPen className="h-4 w-4 text-accent" strokeWidth={2} />
@@ -102,6 +111,8 @@ export default async function HomeDetailPage(
         </div>
       )}
 
+      {!managed && (
+      <>
       <div className="mt-8">
         <h2 className="flex items-center gap-1.5 text-lg font-bold text-ink">
           <Users className="h-4 w-4 text-accent" strokeWidth={2} />
@@ -173,12 +184,14 @@ export default async function HomeDetailPage(
       </div>
 
       <VisitsSection homeId={home.id} />
+      </>
+      )}
 
       <div className="mt-8">
         <h2 className="text-lg font-bold text-ink">Updates</h2>
         <UpdatesFeed
           reports={reports}
-          messages={messages}
+          messages={managed ? [] : messages}
           currentUserId={session.user.id}
           reportHrefBase={`/dashboard/homeowner/homes/${home.id}/reports`}
         />
@@ -188,12 +201,14 @@ export default async function HomeDetailPage(
         >
           View all reports
         </Link>
-        <MessageComposer homeId={home.id} recipientOptions={activeWatchers} />
+        {!managed && <MessageComposer homeId={home.id} recipientOptions={activeWatchers} />}
       </div>
 
-      <div className="mt-10">
-        <DeleteHomeForm homeId={home.id} nickname={home.nickname} />
-      </div>
+      {!managed && (
+        <div className="mt-10">
+          <DeleteHomeForm homeId={home.id} nickname={home.nickname} />
+        </div>
+      )}
     </div>
   );
 }

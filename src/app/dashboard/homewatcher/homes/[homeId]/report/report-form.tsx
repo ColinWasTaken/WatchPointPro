@@ -21,7 +21,6 @@ export function ReportForm({
   return (
     <form
       action={formAction}
-      encType="multipart/form-data"
       className="mt-6 flex flex-col gap-6"
     >
       <div className="flex flex-col gap-2 rounded-3xl bg-surface p-4 shadow-sm">

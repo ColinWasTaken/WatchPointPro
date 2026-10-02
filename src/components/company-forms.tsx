@@ -23,7 +23,7 @@ function FormShell({
 }) {
   const [state, formAction, pending] = useActionState(action, {});
   return (
-    <form action={formAction} encType="multipart/form-data" className="flex flex-col gap-4 rounded-3xl bg-surface p-6 shadow-sm">
+    <form action={formAction} className="flex flex-col gap-4 rounded-3xl bg-surface p-6 shadow-sm">
       {children}
       {state.error && <p className="text-sm text-danger">{state.error}</p>}
       {state.success && <p className="text-sm text-accent">{state.success}</p>}
@@ -236,5 +236,23 @@ export function PropertyForm({
         <textarea name="notes" rows={4} defaultValue={property?.notes ?? ""} placeholder="Gate codes, alarm info, pets…" className={inputClass} />
       </label>
     </FormShell>
+  );
+}
+
+// Sends (or re-sends) a client's WatchPointPro invitation and reports the result inline.
+export function SendInvitationButton({ action, label }: { action: () => Promise<ActionState>; label: string }) {
+  const [state, formAction, pending] = useActionState(action, {});
+  return (
+    <form action={formAction} className="flex flex-col gap-2">
+      <button
+        type="submit"
+        disabled={pending}
+        className="self-start rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-strong disabled:opacity-60"
+      >
+        {pending ? "Sending…" : label}
+      </button>
+      {state.error && <p className="text-sm text-danger">{state.error}</p>}
+      {state.success && <p className="text-sm text-accent">{state.success}</p>}
+    </form>
   );
 }

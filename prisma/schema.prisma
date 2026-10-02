@@ -24,6 +24,7 @@ model User {
   companyMembership  CompanyMember?
   assignedProperties Home[]           @relation("HomeAssignedEmployee")
   clientRecords      Client[]
+  invitationsSent    Invitation[]     @relation("InvitationsSent")
   assignments        HomeAssignment[]
   reports            Report[]
   sentMessages       Message[]        @relation("MessageSender")
@@ -169,9 +170,10 @@ model Company {
   brandColor  String? // #rrggbb
   createdAt   DateTime @default(now())
 
-  members CompanyMember[]
-  clients Client[]
-  homes   Home[]
+  members     CompanyMember[]
+  clients     Client[]
+  homes       Home[]
+  invitations Invitation[]
 }
 
 // Staff of a company. One company per user for now. role: admin | employee
@@ -200,9 +202,32 @@ model Client {
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
 
-  homes Home[]
+  homes       Home[]
+  invitations Invitation[]
 
   @@unique([companyId, email])
   @@index([companyId])
   @@index([userId])
+}
+
+// An emailed invitation to join a company. kind "client" links the homeowner account that accepts
+// it to the Client record and that client's properties. Only the SHA-256 hash of the token is
+// stored, and only an account with the invited (verified) email address can accept it.
+model Invitation {
+  id          String    @id @default(cuid())
+  companyId   String
+  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  kind        String    @default("client") // client (employee invitations will reuse this table)
+  clientId    String?
+  client      Client?   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  email       String // lowercase
+  tokenHash   String    @unique
+  invitedById String?
+  invitedBy   User?     @relation("InvitationsSent", fields: [invitedById], references: [id], onDelete: SetNull)
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([clientId])
+  @@index([email])
 }

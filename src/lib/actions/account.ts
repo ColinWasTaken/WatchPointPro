@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { appUrl, emails, isEmailConfigured, sendEmail } from "@/lib/email";
 import { consumeToken, issueToken, peekToken } from "@/lib/tokens";
 import { claimInvites } from "@/lib/invites";
+import { claimClientInvitations } from "@/lib/invitations";
 
 export type ActionState = { error?: string; success?: string };
 
@@ -51,6 +52,7 @@ export async function resetPasswordAction(
   });
   await prisma.authToken.deleteMany({ where: { userId: user.id } });
   await claimInvites(user);
+  await claimClientInvitations(user);
 
   redirect("/login?reset=1");
 }
@@ -65,6 +67,7 @@ export async function verifyEmailAction(token: string) {
   });
   await consumeToken(row.id);
   await claimInvites(user);
+  await claimClientInvitations(user);
 
   redirect("/login?verified=1");
 }

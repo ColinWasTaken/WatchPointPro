@@ -1,12 +1,21 @@
 import Link from "next/link";
-import { Mail, MapPin, Phone, Plus } from "lucide-react";
+import { KeyRound, Mail, MapPin, Phone, Plus } from "lucide-react";
 import { BackLink } from "@/components/back-link";
-import { ClientForm } from "@/components/company-forms";
+import { ClientForm, SendInvitationButton } from "@/components/company-forms";
 import { ConfirmButton } from "@/components/confirm-button";
+import { LocalTime } from "@/components/local-time";
 import { getClientOr404, isAdmin, propertyScope, requireCompany } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 import { clientName } from "@/lib/fields";
 import { deleteClientAction, updateClientAction } from "@/lib/actions/company";
+import {
+  cancelClientInvitationAction,
+  removeClientAccessAction,
+  sendClientInvitationAction,
+} from "@/lib/actions/invitations";
+
+const outlineButton =
+  "rounded-full border border-border px-4 py-2 text-sm font-semibold text-ink-muted transition-colors hover:border-danger hover:text-danger";
 
 export default async function ClientPage(props: PageProps<"/dashboard/homewatcher/clients/[clientId]">) {
   const { clientId } = await props.params;
@@ -19,6 +28,19 @@ export default async function ClientPage(props: PageProps<"/dashboard/homewatche
     include: { assignedEmployee: { select: { name: true, email: true } } },
     orderBy: { createdAt: "asc" },
   });
+
+  const [account, pending, joined] = await Promise.all([
+    client.userId ? prisma.user.findUnique({ where: { id: client.userId }, select: { email: true } }) : null,
+    prisma.invitation.findFirst({ where: { clientId: client.id, acceptedAt: null }, orderBy: { createdAt: "desc" } }),
+    client.userId
+      ? prisma.invitation.findFirst({
+          where: { clientId: client.id, acceptedAt: { not: null } },
+          orderBy: { acceptedAt: "desc" },
+        })
+      : null,
+  ]);
+  const pendingOpen = pending && pending.expiresAt > new Date() ? pending : null;
+  const sendInvitation = sendClientInvitationAction.bind(null, client.id);
 
   return (
     <div className="mx-auto max-w-lg">
@@ -36,6 +58,72 @@ export default async function ClientPage(props: PageProps<"/dashboard/homewatche
           </a>
         )}
       </div>
+
+      <section className="mt-6 rounded-3xl bg-surface p-5 shadow-sm">
+        <h2 className="flex items-center gap-1.5 font-bold text-ink">
+          <KeyRound className="h-4 w-4 text-accent" strokeWidth={2} />
+          WatchPointPro access
+        </h2>
+        {account ? (
+          <>
+            <p className="mt-1 text-sm text-ink-muted">
+              {client.firstName} has an account ({account.email}) and can see their properties&apos; reports.
+              {joined?.acceptedAt && (
+                <>
+                  {" "}
+                  Joined <LocalTime iso={joined.acceptedAt.toISOString()} style="date" />.
+                </>
+              )}
+            </p>
+            {admin && (
+              <form action={removeClientAccessAction.bind(null, client.id)} className="mt-3">
+                <ConfirmButton
+                  message={`Remove ${clientName(client)}'s access? They'll stop seeing these properties in WatchPointPro.`}
+                  className={outlineButton}
+                >
+                  Remove access
+                </ConfirmButton>
+              </form>
+            )}
+          </>
+        ) : pendingOpen ? (
+          <>
+            <p className="mt-1 text-sm text-ink-muted">
+              Invitation sent to {pendingOpen.email} on <LocalTime iso={pendingOpen.createdAt.toISOString()} style="date" />.
+              The link expires <LocalTime iso={pendingOpen.expiresAt.toISOString()} style="date" />.
+            </p>
+            {admin && (
+              <div className="mt-3 flex flex-wrap items-start gap-2">
+                <SendInvitationButton action={sendInvitation} label="Resend invitation" />
+                <form action={cancelClientInvitationAction.bind(null, client.id)}>
+                  <ConfirmButton message="Cancel this invitation? The link in the email will stop working." className={outlineButton}>
+                    Cancel invitation
+                  </ConfirmButton>
+                </form>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <p className="mt-1 text-sm text-ink-muted">
+              {pending ? (
+                <>
+                  The invitation sent on <LocalTime iso={pending.createdAt.toISOString()} style="date" /> expired.
+                </>
+              ) : !client.email ? (
+                admin ? `Add an email address below to invite ${client.firstName}.` : "No email address on file."
+              ) : (
+                `${client.firstName} doesn't have access yet. Send an invitation so they can see their properties' home-check reports.`
+              )}
+            </p>
+            {admin && client.email && (
+              <div className="mt-3">
+                <SendInvitationButton action={sendInvitation} label={pending ? "Send a new invitation" : "Send invitation"} />
+              </div>
+            )}
+          </>
+        )}
+      </section>
 
       <div className="mb-3 mt-8 flex items-center justify-between">
         <h2 className="text-lg font-bold text-ink">Properties</h2>

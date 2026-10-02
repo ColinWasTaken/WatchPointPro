@@ -19,7 +19,6 @@ export function AddHomeForm() {
   return (
     <form
       action={formAction}
-      encType="multipart/form-data"
       className="mt-6 flex flex-col gap-4 rounded-3xl bg-surface p-6 shadow-sm"
     >
       <label className={labelClass}>

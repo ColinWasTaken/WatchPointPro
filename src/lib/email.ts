@@ -65,6 +65,7 @@ function layout(heading: string, body: string, buttonLabel: string, href: string
 }
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+const oneLine = (s: string) => s.replace(/\s+/g, " ").trim();
 
 export function formatWhen(date: Date, timezone?: string | null) {
   return new Intl.DateTimeFormat("en-US", {
@@ -112,6 +113,19 @@ export const emails = {
   invite: (ownerName: string, homeName: string, link: string) => ({
     subject: `${ownerName} invited you to watch ${homeName}`,
     html: layout("You're invited", `${esc(ownerName)} invited you to be a homewatcher for <b>${esc(homeName)}</b> on HomeWatch. Create a homewatcher account with this email address and the invitation will be waiting for you.`, "Get started", link),
+  }),
+  clientInvite: (company: string, firstName: string, link: string, days: number) => ({
+    subject: `${oneLine(company)} invited you to WatchPointPro`,
+    html: layout(
+      `${esc(company)} invited you`,
+      `Hi ${esc(firstName)}, ${esc(company)} uses WatchPointPro to provide digital home-check reports. Create your account to view inspections, photos, videos, and property updates.<br><br>This invitation expires in ${days} days.`,
+      "Accept invitation",
+      link,
+    ),
+  }),
+  clientJoined: (client: string, link: string) => ({
+    subject: `${oneLine(client)} accepted your invitation`,
+    html: layout("Invitation accepted", `<b>${esc(client)}</b> created their WatchPointPro account and can now see their properties.`, "View client", link),
   }),
   inviteExisting: (ownerName: string, homeName: string, link: string) => ({
     subject: `${ownerName} invited you to watch ${homeName}`,

@@ -15,6 +15,8 @@ export default async function EditHomePage(
   if (!home || home.ownerId !== session.user.id) {
     notFound();
   }
+  // Company-managed properties are edited by the company.
+  if (home.companyId) redirect(`/dashboard/homeowner/homes/${home.id}`);
 
   return (
     <div className="mx-auto max-w-lg">

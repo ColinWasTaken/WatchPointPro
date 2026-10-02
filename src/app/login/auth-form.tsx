@@ -14,9 +14,11 @@ const ROLE_LABEL: Record<UserRole, string> = {
 export function AuthForm({
   initialRole,
   notice,
+  next,
 }: {
   initialRole: UserRole | null;
   notice: string | null;
+  next: string | null;
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<"signin" | "signup">(
@@ -84,7 +86,7 @@ export function AuthForm({
         return;
       }
 
-      router.push("/dashboard");
+      router.push(next ?? "/dashboard");
       router.refresh();
     } catch {
       setError("Something went wrong. Please try again.");

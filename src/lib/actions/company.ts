@@ -182,6 +182,10 @@ export async function updateClientAction(
   }
 
   await prisma.client.update({ where: { id: client.id }, data: fields });
+  if (fields.email !== client.email) {
+    // A pending invitation went to the old address; it must not be usable for the new one.
+    await prisma.invitation.deleteMany({ where: { clientId: client.id, acceptedAt: null } });
+  }
 
   revalidatePath("/dashboard/homewatcher/clients");
   revalidatePath(`/dashboard/homewatcher/clients/${client.id}`);
