@@ -9,7 +9,7 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "HomeWatch",
+  title: "WatchPointPro",
   description: "Home-watching coordination for homeowners and homewatchers.",
 };
 

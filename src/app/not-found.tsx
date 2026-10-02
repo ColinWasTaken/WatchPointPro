@@ -16,7 +16,7 @@ export default function NotFound() {
         className="mt-2 flex items-center gap-1.5 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-strong"
       >
         <HomeIcon className="h-4 w-4" strokeWidth={2} />
-        Back to HomeWatch
+        Back to WatchPointPro
       </Link>
     </div>
   );

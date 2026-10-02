@@ -21,7 +21,7 @@ export function DashboardHeader({
         <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-accent-soft text-accent">
           <HomeIcon className="h-4 w-4" strokeWidth={2} />
         </span>
-        <span className="text-lg font-bold">HomeWatch</span>
+        <span className="text-lg font-bold">WatchPointPro</span>
       </Link>
       <div className="flex items-center gap-4">
         <span className="hidden text-sm text-ink-muted sm:inline">{userEmail}</span>

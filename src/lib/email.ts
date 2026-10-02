@@ -40,7 +40,7 @@ export async function sendEmail({
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: process.env.EMAIL_FROM ?? "HomeWatch <onboarding@resend.dev>",
+      from: process.env.EMAIL_FROM ?? "WatchPointPro <onboarding@resend.dev>",
       to,
       subject,
       html,
@@ -103,16 +103,16 @@ export const emails = {
   }),
 
   verify: (link: string) => ({
-    subject: "Confirm your HomeWatch email",
-    html: layout("Confirm your email", "Thanks for signing up for HomeWatch. Confirm your email address to finish setting up your account. This link expires in 24 hours.", "Confirm email", link),
+    subject: "Confirm your WatchPointPro email",
+    html: layout("Confirm your email", "Thanks for signing up for WatchPointPro. Confirm your email address to finish setting up your account. This link expires in 24 hours.", "Confirm email", link),
   }),
   reset: (link: string) => ({
-    subject: "Reset your HomeWatch password",
+    subject: "Reset your WatchPointPro password",
     html: layout("Reset your password", "We got a request to reset your password. This link expires in 1 hour. If you didn't ask for this, you can ignore this email.", "Choose a new password", link),
   }),
   invite: (ownerName: string, homeName: string, link: string) => ({
     subject: `${ownerName} invited you to watch ${homeName}`,
-    html: layout("You're invited", `${esc(ownerName)} invited you to be a homewatcher for <b>${esc(homeName)}</b> on HomeWatch. Create a homewatcher account with this email address and the invitation will be waiting for you.`, "Get started", link),
+    html: layout("You're invited", `${esc(ownerName)} invited you to be a homewatcher for <b>${esc(homeName)}</b> on WatchPointPro. Create a homewatcher account with this email address and the invitation will be waiting for you.`, "Get started", link),
   }),
   clientInvite: (company: string, firstName: string, link: string, days: number) => ({
     subject: `${oneLine(company)} invited you to WatchPointPro`,

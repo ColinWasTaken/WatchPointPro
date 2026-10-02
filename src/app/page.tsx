@@ -9,7 +9,7 @@ export default function Home() {
           <HomeIcon className="h-7 w-7" strokeWidth={1.75} />
         </div>
         <h1 className="text-3xl font-bold tracking-tight text-ink">
-          HomeWatch
+          WatchPointPro
         </h1>
         <p className="text-ink-muted">Who&apos;s checking in today?</p>
       </div>
