@@ -33,6 +33,8 @@ const nextConfig: NextConfig = {
         hostname: "*.supabase.co",
         pathname: "/storage/v1/object/public/**",
       },
+      // Photography on the public website (Unsplash license: free for commercial use)
+      { protocol: "https", hostname: "images.unsplash.com", pathname: "/photo-*" },
     ],
   },
 };

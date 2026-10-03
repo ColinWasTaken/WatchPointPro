@@ -26,10 +26,12 @@ export async function sendEmail({
   to,
   subject,
   html,
+  replyTo,
 }: {
   to: string;
   subject: string;
   html: string;
+  replyTo?: string;
 }) {
   if (!isEmailConfigured()) return false;
 
@@ -45,6 +47,7 @@ export async function sendEmail({
       subject,
       html,
       text: toPlainText(html),
+      ...(replyTo ? { reply_to: replyTo } : {}),
     }),
   });
 
@@ -130,6 +133,25 @@ export const emails = {
   inspectionCompleted: (company: string, place: string, outcome: string, link: string) => ({
     subject: `Your home check at ${oneLine(place)} has been completed`,
     html: layout("Home check completed", `${esc(company)} completed a home check at <b>${esc(place)}</b>. ${esc(outcome)}`, "View report", link),
+  }),
+  newInquiry: (i: { name: string; email: string; phone: string | null; location: string | null; away: string | null; plan: string | null; message: string | null }) => ({
+    subject: `Consultation request from ${oneLine(i.name)}`,
+    html: layout(
+      "New consultation request",
+      [
+        `<b>${esc(i.name)}</b> asked about home watch through the website.`,
+        `Email: ${esc(i.email)}`,
+        i.phone && `Phone: ${esc(i.phone)}`,
+        i.location && `Home: ${esc(i.location)}`,
+        i.away && `Away: ${esc(i.away)}`,
+        i.plan && `Plan: ${esc(i.plan)}`,
+        i.message && `Message:<br>${esc(i.message).replace(/\r?\n/g, "<br>")}`,
+      ]
+        .filter(Boolean)
+        .join("<br>"),
+      "Reply by email",
+      `mailto:${encodeURIComponent(i.email)}`,
+    ),
   }),
   issueResolved: (company: string, issue: string, place: string, link: string) => ({
     subject: `Resolved: ${oneLine(issue)} at ${oneLine(place)}`,

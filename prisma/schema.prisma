@@ -381,3 +381,20 @@ model ContractorSearch {
 
   @@index([userId, createdAt])
 }
+
+// A consultation request from the public website's booking form. Kept even when the email
+// notification can't be sent, so no request is lost.
+model Inquiry {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  location  String? // where the home is
+  away      String? // when they'll be away
+  plan      String?
+  message   String?
+  ipHash    String // for rate limiting; the address itself isn't stored
+  createdAt DateTime @default(now())
+
+  @@index([ipHash, createdAt])
+}

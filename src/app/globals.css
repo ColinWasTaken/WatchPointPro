@@ -27,6 +27,19 @@
   --color-danger: var(--danger);
   --color-border: var(--border);
   --font-sans: var(--font-nunito);
+
+  /* Public website (light only, independent of the app's dark mode) */
+  --color-paper: #f1f1ee;
+  --color-sheet: #ffffff;
+  --color-harbor: #1d2b36;
+  --color-slate-text: #5b6670;
+  --color-hairline: #d9dad5;
+  --color-mist: #e5e7e2;
+  --color-boxwood: #3e5a49;
+  --color-boxwood-deep: #2f4638;
+  --font-display: var(--font-site-display);
+  --font-caslon: var(--font-site-serif);
+  --font-site: var(--font-site-sans);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -49,4 +62,23 @@ body {
   background: var(--background);
   color: var(--ink);
   font-family: var(--font-sans), ui-sans-serif, sans-serif;
+}
+
+/* Public website: one orchestrated entrance in the hero, nothing else moves on its own. */
+@keyframes site-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes site-reveal {
+  from { opacity: 0; transform: scale(1.025); }
+  to { opacity: 1; transform: none; }
+}
+.site-rise { animation: site-rise 1s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.site-reveal { animation: site-reveal 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+html:has(.site) { scroll-behavior: smooth; }
+html:has(.site) body { background: var(--color-paper); }
+.site :focus-visible { outline: 2px solid var(--color-boxwood); outline-offset: 3px; border-radius: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  .site-rise, .site-reveal { animation: none; }
+  html:has(.site) { scroll-behavior: auto; }
 }
