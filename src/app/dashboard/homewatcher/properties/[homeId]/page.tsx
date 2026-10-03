@@ -3,18 +3,20 @@ import { MapPin } from "lucide-react";
 import { BackLink } from "@/components/back-link";
 import { PropertyForm } from "@/components/company-forms";
 import { ConfirmButton } from "@/components/confirm-button";
+import { ReadingTrends } from "@/components/reading-trends";
 import { VisitsSection } from "@/components/visits-section";
 import { HomeCheckPanel } from "./home-check-panel";
 import { companyEmployees, getPropertyOr404, isAdmin, requireCompany } from "@/lib/authz";
 import { clientName } from "@/lib/fields";
 import { deletePropertyAction, updatePropertyAction } from "@/lib/actions/company";
+import { readingTrends } from "@/lib/trends";
 
 export default async function PropertyPage(props: PageProps<"/dashboard/homewatcher/properties/[homeId]">) {
   const { homeId } = await props.params;
   const ctx = await requireCompany();
   const property = await getPropertyOr404(ctx, homeId);
   const admin = isAdmin(ctx);
-  const employees = admin ? await companyEmployees(ctx) : [];
+  const [employees, trends] = await Promise.all([admin ? companyEmployees(ctx) : [], readingTrends(property.id)]);
 
   return (
     <div className="mx-auto max-w-lg">
@@ -53,6 +55,8 @@ export default async function PropertyPage(props: PageProps<"/dashboard/homewatc
         submitLabel="Schedule check"
         canCancel={(visit) => admin || visit.createdById === ctx.userId}
       />
+
+      <ReadingTrends series={trends} />
 
       {admin ? (
         <>

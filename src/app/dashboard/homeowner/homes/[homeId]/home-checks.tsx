@@ -7,6 +7,8 @@ import { contractorSearchAvailable, tradeForItem } from "@/lib/contractors";
 import { LocalTime } from "@/components/local-time";
 import { InspectionReport, OutcomeBadge } from "@/components/inspection-report";
 import { IssueList } from "@/components/issue-list";
+import { ReadingTrends } from "@/components/reading-trends";
+import { readingTrends } from "@/lib/trends";
 
 // For a company-managed home: the latest check's results in full, then earlier checks.
 export async function HomeChecks({ homeId, companyName }: { homeId: string; companyName: string }) {
@@ -67,7 +69,10 @@ export async function HomeChecks({ homeId, companyName }: { homeId: string; comp
   }
 
   const [latest, ...earlier] = checks;
-  const urls = await signMediaUrls(latest.items.flatMap((i) => i.media.map((m) => m.path)));
+  const [urls, trends] = await Promise.all([
+    signMediaUrls(latest.items.flatMap((i) => i.media.map((m) => m.path))),
+    readingTrends(homeId),
+  ]);
   const base = `/dashboard/homeowner/homes/${homeId}/inspections`;
   const issueLinks = await issueLinksFor(latest, (id) => `/dashboard/homeowner/homes/${homeId}/issues/${id}`);
   const proLinkFor = contractorSearchAvailable()
@@ -86,6 +91,8 @@ export async function HomeChecks({ homeId, companyName }: { homeId: string; comp
           Open this report
         </Link>
       </section>
+
+      <ReadingTrends series={trends} />
 
       {earlier.length > 0 && (
         <section className="mt-8">

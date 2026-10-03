@@ -4,7 +4,7 @@ import { Check, Minus, TriangleAlert, Wrench } from "lucide-react";
 import { brandOf } from "@/lib/brand";
 import { CompanyMark } from "./company-mark";
 import { LocalTime } from "./local-time";
-import { STATUS_LABEL, inspectionOutcome, isItemStatus, type ItemStatus, type OutcomeLevel } from "@/lib/inspection-template";
+import { formatReading, inspectionOutcome, isItemStatus, STATUS_LABEL, type ItemStatus, type OutcomeLevel } from "@/lib/inspection-template";
 import { ISSUE_STATUS_LABEL, isIssueStatus } from "@/lib/issues";
 
 type ReportMedia = { id: string; kind: string; path: string };
@@ -50,9 +50,7 @@ export function OutcomeBadge({ items }: { items: { status: string | null }[] }) 
   );
 }
 
-// "74°F" and "48%", but "3 ppm".
-const reading = (value: number | null, unit: string | null) =>
-  value === null || !unit ? null : `${Number.isInteger(value) ? value : value.toFixed(1)}${/^[a-z]/i.test(unit) ? " " : ""}${unit}`;
+const reading = (value: number | null, unit: string | null) => (value === null || !unit ? null : formatReading(value, unit));
 
 // A submitted home check as homeowners and staff read it: what's wrong first, then what's fine.
 // Media URLs are signed by the caller after its own permission check.

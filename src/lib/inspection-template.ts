@@ -22,6 +22,10 @@ export const DEFAULT_INSPECTION_ITEMS: TemplateItem[] = [
   { key: "other", label: "Other" },
 ];
 
+// "74°F" and "48%", but "3 ppm".
+export const formatReading = (value: number, unit: string) =>
+  `${Number.isInteger(value) ? value : value.toFixed(1)}${/^[a-z]/i.test(unit) ? " " : ""}${unit}`;
+
 export const ITEM_STATUSES = ["good", "needs_attention", "repair_needed", "not_checked"] as const;
 export type ItemStatus = (typeof ITEM_STATUSES)[number];
 
