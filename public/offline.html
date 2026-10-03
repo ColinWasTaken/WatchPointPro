@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Offline · WatchPointPro</title>
+    <style>
+      :root { --bg: #faf6ef; --surface: #fffdfa; --ink: #362f27; --muted: #8a7f71; --accent: #6b8a63; }
+      @media (prefers-color-scheme: dark) { :root { --bg: #24211c; --surface: #2d2924; --ink: #f1e9dd; --muted: #ab9f8f; --accent: #8bab81; } }
+      body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box;
+        background: var(--bg); color: var(--ink); font-family: ui-rounded, "Nunito", system-ui, -apple-system, sans-serif; }
+      .card { max-width: 380px; background: var(--surface); border-radius: 24px; padding: 32px; text-align: center; box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+      h1 { font-size: 20px; margin: 16px 0 8px; }
+      p { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 0 0 20px; }
+      button { background: var(--accent); color: #fff; border: 0; border-radius: 999px; padding: 12px 24px; font: inherit; font-weight: 700; cursor: pointer; }
+      img { width: 56px; height: 56px; border-radius: 16px; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <img src="/icons/icon-192.png" alt="" />
+      <h1>You're offline</h1>
+      <p>This page needs a connection. Home checks you've already opened on this phone still work offline, and your changes sync automatically once you're back online.</p>
+      <button onclick="location.reload()">Try again</button>
+    </div>
+  </body>
+</html>

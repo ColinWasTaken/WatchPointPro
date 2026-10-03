@@ -5,8 +5,9 @@ import { supabaseAdmin } from "@/lib/supabase";
 // with a one-time signed URL, so large files never pass through our server (Vercel caps requests
 // at 4.5 MB), and viewers get short-lived signed read URLs after a permission check.
 
+export { MEDIA_LIMITS } from "@/lib/media-limits";
+
 export const MEDIA_BUCKET = "inspection-media";
-export const MEDIA_LIMITS = { photo: 20 * 1024 * 1024, video: 50 * 1024 * 1024 };
 const READ_URL_SECONDS = 60 * 60;
 
 const EXTENSIONS: Record<string, string> = {

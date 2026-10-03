@@ -3,6 +3,7 @@ import { Bell, Home as HomeIcon } from "lucide-react";
 import { SignOutButton } from "@/app/dashboard/sign-out-button";
 import { DashboardNav, type NavVariant } from "./dashboard-nav";
 import { TimezoneSync } from "./timezone-sync";
+import { OfflineBanner } from "./offline";
 
 export function DashboardHeader({
   homeHref,
@@ -18,6 +19,7 @@ export function DashboardHeader({
   return (
     <>
     <TimezoneSync />
+    <OfflineBanner />
     <header className="flex items-center justify-between bg-surface px-6 pb-2 pt-4">
       <Link href={homeHref} className="flex items-center gap-2 text-ink">
         <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-accent-soft text-accent">
