@@ -3,6 +3,7 @@
 //  - Home-check pages are loaded fresh whenever there's a connection and a copy is kept, so a check
 //    already opened on this phone can be reopened offline (its edits sync when back online).
 //  - Any other page shows /offline.html when there's no connection.
+// It also shows push notifications (bottom of this file).
 const VERSION = "v1";
 const STATIC = `wpp-static-${VERSION}`;
 const PAGES = `wpp-pages-${VERSION}`;
@@ -71,4 +72,54 @@ self.addEventListener("fetch", (event) => {
 // Signing out removes saved pages, so the next person on this phone can't open them offline.
 self.addEventListener("message", (event) => {
   if (event.data === "sign-out") event.waitUntil(caches.delete(PAGES));
+});
+
+// Push notifications, sent by src/lib/push.ts: { title, body, url }.
+self.addEventListener("push", (event) => {
+  let message = {};
+  try {
+    message = event.data ? event.data.json() : {};
+  } catch {}
+  event.waitUntil(
+    self.registration.showNotification(message.title || "WatchPointPro", {
+      body: message.body || undefined,
+      icon: "/icons/icon-192.png",
+      badge: "/icons/badge-96.png",
+      data: { url: message.url },
+    }),
+  );
+});
+
+// Tapping one opens its page (only ever a page on this site), in an open window if there is one.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const wanted = event.notification.data && event.notification.data.url;
+  const url = typeof wanted === "string" && /^\/(?![/\\])/.test(wanted) ? wanted : "/dashboard";
+  event.waitUntil(
+    (async () => {
+      const [open] = await self.clients.matchAll({ type: "window" });
+      if (open) {
+        await open.focus().catch(() => {});
+        await open.navigate(url);
+      } else {
+        await self.clients.openWindow(url);
+      }
+    })(),
+  );
+});
+
+// Browsers occasionally replace a subscription; save the new one so notifications keep arriving.
+self.addEventListener("pushsubscriptionchange", (event) => {
+  event.waitUntil(
+    (async () => {
+      const old = event.oldSubscription;
+      const renewed = event.newSubscription || (old && (await self.registration.pushManager.subscribe(old.options)));
+      if (!renewed) return;
+      await fetch("/api/push", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subscription: renewed.toJSON(), replaces: old && old.endpoint }),
+      });
+    })().catch(() => {}),
+  );
 });

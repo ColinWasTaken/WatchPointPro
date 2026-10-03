@@ -3,9 +3,11 @@ import { Bell } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { markAllNotificationsReadAction } from "@/lib/actions/notifications";
+import { pushPublicKey } from "@/lib/push";
 import { LocalTime } from "./local-time";
+import { PushHint } from "./push-settings";
 
-export async function NotificationsPage() {
+export async function NotificationsPage({ settingsHref }: { settingsHref: string }) {
   const session = await auth();
   if (!session) redirect("/login");
   const notes = await prisma.notification.findMany({
@@ -13,6 +15,7 @@ export async function NotificationsPage() {
     orderBy: { createdAt: "desc" },
     take: 50,
   });
+  const publicKey = pushPublicKey();
 
   return (
     <div className="mx-auto max-w-2xl">
@@ -57,6 +60,7 @@ export async function NotificationsPage() {
           ))}
         </ul>
       )}
+      {publicKey && <PushHint publicKey={publicKey} settingsHref={settingsHref} />}
     </div>
   );
 }

@@ -27,6 +27,7 @@ model User {
   invitationsSent      Invitation[]       @relation("InvitationsSent")
   inspectionsPerformed Inspection[]       @relation("InspectionsPerformed")
   notifications        Notification[]
+  pushSubscriptions    PushSubscription[]
   issueEvents          IssueEvent[]
   contractorSearches   ContractorSearch[]
   assignments          HomeAssignment[]
@@ -320,6 +321,21 @@ model Notification {
   createdAt DateTime  @default(now())
 
   @@index([userId, readAt])
+  @@index([userId, createdAt])
+}
+
+// A browser or installed app that receives push notifications for a user: one row per device.
+// Everything shown under the bell is also sent here (see src/lib/push.ts).
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique // the push service URL for this device; only known services are accepted
+  p256dh    String // the device's public key, for encrypting messages to it
+  auth      String // the device's auth secret
+  device    String? // e.g. "iPhone", to tell devices apart
+  createdAt DateTime @default(now())
+
   @@index([userId, createdAt])
 }
 

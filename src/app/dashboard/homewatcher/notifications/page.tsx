@@ -1,5 +1,5 @@
 import { NotificationsPage } from "@/components/notifications-page";
 
 export default function Notifications() {
-  return <NotificationsPage />;
+  return <NotificationsPage settingsHref="/dashboard/homewatcher/settings" />;
 }

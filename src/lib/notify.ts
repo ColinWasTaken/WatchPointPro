@@ -1,5 +1,7 @@
+import { after } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
+import { sendPush } from "@/lib/push";
 
 type Mail = { subject: string; html: string };
 type Note = { type: string; title: string; body?: string; link: string };
@@ -22,8 +24,8 @@ export async function notifyUser(userId: string | null | undefined, mail: ForRec
   }
 }
 
-// Records an in-app notification (shown under the bell, opening `link`) and, if the user allows
-// email, sends `email` too. Push notifications can later be another delivery for the same rows.
+// Records an in-app notification (shown under the bell, opening `link`), sends it to the devices
+// where the user turned on push notifications, and, if the user allows email, sends `email` too.
 // Never throws.
 export async function notify(userId: string | null | undefined, note: ForRecipient<Note>, email?: ForRecipient<Mail>) {
   if (!userId) return;
@@ -31,10 +33,12 @@ export async function notify(userId: string | null | undefined, note: ForRecipie
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) return;
     const { type, title, body, link } = resolve(note, user.timezone);
-    await prisma.notification.create({ data: { userId, type, title, body: body ?? null, link } });
+    const row = await prisma.notification.create({ data: { userId, type, title, body: body ?? null, link } });
     if (email && user.notifyEmail && user.emailVerifiedAt) {
       await sendEmail({ to: user.email, ...resolve(email, user.timezone) });
     }
+    // After the response, so the action that caused it isn't slowed down. Opening it marks it read.
+    after(() => sendPush(userId, { title, body, url: `/notifications/${row.id}` }));
   } catch (err) {
     console.error("notify failed", err);
   }

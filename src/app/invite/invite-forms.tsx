@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { signOut } from "next-auth/react";
+import { forgetThisDevice } from "@/components/push-settings";
 import type { ActionState } from "@/lib/actions/invitations";
 
 type Action = (prev: ActionState, formData: FormData) => Promise<ActionState>;
@@ -58,7 +59,14 @@ export function AcceptInvitationButton({ action }: { action: Action }) {
 // Signs out of the wrong account and comes back to the invitation.
 export function SwitchAccountButton({ callbackUrl }: { callbackUrl: string }) {
   return (
-    <button type="button" onClick={() => signOut({ callbackUrl })} className={buttonClass}>
+    <button
+      type="button"
+      onClick={async () => {
+        await forgetThisDevice(); // the other account's notifications stop coming to this device
+        signOut({ callbackUrl });
+      }}
+      className={buttonClass}
+    >
       Sign out and continue
     </button>
   );
