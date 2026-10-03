@@ -127,6 +127,10 @@ export const emails = {
     subject: `${oneLine(client)} accepted your invitation`,
     html: layout("Invitation accepted", `<b>${esc(client)}</b> created their WatchPointPro account and can now see their properties.`, "View client", link),
   }),
+  inspectionCompleted: (company: string, place: string, outcome: string, link: string) => ({
+    subject: `Your home check at ${oneLine(place)} has been completed`,
+    html: layout("Home check completed", `${esc(company)} completed a home check at <b>${esc(place)}</b>. ${esc(outcome)}`, "View report", link),
+  }),
   employeeInvite: (company: string, inviter: string, link: string, days: number) => ({
     subject: `${oneLine(inviter)} invited you to join ${oneLine(company)} on WatchPointPro`,
     html: layout(

@@ -5,6 +5,8 @@ import { Building2, Home as HomeIcon, MapPin, Plus, Users } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { HomeActivity } from "@/components/home-activity";
+import { LocalTime } from "@/components/local-time";
+import { OutcomeBadge } from "@/components/inspection-report";
 
 export default async function HomeownerDashboardPage(props: PageProps<"/dashboard/homeowner">) {
   const { joined } = await props.searchParams;
@@ -15,6 +17,12 @@ export default async function HomeownerDashboardPage(props: PageProps<"/dashboar
     where: { ownerId: session.user.id },
     include: {
       company: { select: { name: true } },
+      inspections: {
+        where: { status: "submitted" },
+        orderBy: { submittedAt: "desc" },
+        take: 1,
+        include: { items: { select: { status: true } } },
+      },
       assignments: { where: { status: "accepted" } },
       reports: { orderBy: { createdAt: "desc" }, take: 1 },
       visits: { where: { scheduledFor: { gte: new Date() } }, orderBy: { scheduledFor: "asc" }, take: 1 },
@@ -96,7 +104,20 @@ export default async function HomeownerDashboardPage(props: PageProps<"/dashboar
                     : `${home.assignments.length} homewatcher${home.assignments.length > 1 ? "s" : ""} assigned`}
                 </p>
               )}
-              <HomeActivity lastReport={home.reports[0] ?? null} nextVisit={home.visits[0]?.scheduledFor ?? null} />
+              {home.company ? (
+                <p className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-ink-muted">
+                  {home.inspections[0] ? (
+                    <>
+                      Checked <LocalTime iso={(home.inspections[0].submittedAt ?? home.inspections[0].startedAt).toISOString()} style="relative" />
+                      <OutcomeBadge items={home.inspections[0].items} />
+                    </>
+                  ) : (
+                    "Not checked yet"
+                  )}
+                </p>
+              ) : (
+                <HomeActivity lastReport={home.reports[0] ?? null} nextVisit={home.visits[0]?.scheduledFor ?? null} />
+              )}
             </Link>
           ))}
         </div>

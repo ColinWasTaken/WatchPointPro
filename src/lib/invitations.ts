@@ -2,7 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { appUrl, emails } from "@/lib/email";
-import { notifyUser } from "@/lib/notify";
+import { notify } from "@/lib/notify";
 import { deletePhoto } from "@/lib/uploads";
 
 // Invitations: a company emails someone a single-use link.
@@ -176,11 +176,18 @@ async function link(tx: Prisma.TransactionClient, invitationId: string, account:
 
 async function notifyInviter(invitation: InvitationRow, account: Account) {
   const name = account.name ?? account.email;
-  await notifyUser(
+  const employee = invitation.kind === "employee";
+  const link = employee ? "/dashboard/homewatcher/team" : `/dashboard/homewatcher/clients/${invitation.clientId}`;
+  await notify(
     invitation.invitedById,
-    invitation.kind === "employee"
-      ? emails.employeeJoined(name, invitation.company.name, `${appUrl()}/dashboard/homewatcher/team`)
-      : emails.clientJoined(name, `${appUrl()}/dashboard/homewatcher/clients/${invitation.clientId}`),
+    {
+      type: employee ? "employee_joined" : "client_joined",
+      title: employee ? `${name} joined your team` : `${name} accepted your invitation`,
+      link,
+    },
+    employee
+      ? emails.employeeJoined(name, invitation.company.name, `${appUrl()}${link}`)
+      : emails.clientJoined(name, `${appUrl()}${link}`),
   );
 }
 

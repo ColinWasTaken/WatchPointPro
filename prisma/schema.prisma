@@ -18,17 +18,19 @@ model User {
   timezone        String?
   createdAt       DateTime  @default(now())
 
-  authTokens         AuthToken[]
-  visitsCreated      Visit[]
-  homes              Home[]           @relation("HomeOwner")
-  companyMembership  CompanyMember?
-  assignedProperties Home[]           @relation("HomeAssignedEmployee")
-  clientRecords      Client[]
-  invitationsSent    Invitation[]     @relation("InvitationsSent")
-  assignments        HomeAssignment[]
-  reports            Report[]
-  sentMessages       Message[]        @relation("MessageSender")
-  receivedMessages   Message[]        @relation("MessageRecipient")
+  authTokens           AuthToken[]
+  visitsCreated        Visit[]
+  homes                Home[]           @relation("HomeOwner")
+  companyMembership    CompanyMember?
+  assignedProperties   Home[]           @relation("HomeAssignedEmployee")
+  clientRecords        Client[]
+  invitationsSent      Invitation[]     @relation("InvitationsSent")
+  inspectionsPerformed Inspection[]     @relation("InspectionsPerformed")
+  notifications        Notification[]
+  assignments          HomeAssignment[]
+  reports              Report[]
+  sentMessages         Message[]        @relation("MessageSender")
+  receivedMessages     Message[]        @relation("MessageRecipient")
 }
 
 // A property. Independent homeowners own one directly (ownerId). A company-managed property
@@ -63,6 +65,7 @@ model Home {
   visits         Visit[]
   checklistItems ChecklistItem[]
   reports        Report[]
+  inspections    Inspection[]
   messages       Message[]
 
   @@index([companyId])
@@ -174,6 +177,7 @@ model Company {
   clients     Client[]
   homes       Home[]
   invitations Invitation[]
+  inspections Inspection[]
 }
 
 // Staff of a company. One company per user for now. role: admin | employee
@@ -232,4 +236,81 @@ model Invitation {
 
   @@index([clientId])
   @@index([email])
+}
+
+// A home check of a company property. It's created as a draft when someone taps Start Home
+// Check, saved item by item as they go (so it can be resumed), and becomes visible to the
+// homeowner once submitted.
+model Inspection {
+  id          String    @id @default(cuid())
+  companyId   String
+  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  homeId      String
+  home        Home      @relation(fields: [homeId], references: [id], onDelete: Cascade)
+  inspectorId String?
+  inspector   User?     @relation("InspectionsPerformed", fields: [inspectorId], references: [id], onDelete: SetNull)
+  status      String    @default("draft") // draft | submitted
+  summary     String?
+  startedAt   DateTime  @default(now())
+  submittedAt DateTime?
+
+  items InspectionItem[]
+  media InspectionMedia[]
+
+  @@index([homeId, status])
+  @@index([companyId, submittedAt])
+}
+
+// One checklist line, copied from the template when the check starts so later template changes
+// never rewrite history.
+model InspectionItem {
+  id           String     @id @default(cuid())
+  inspectionId String
+  inspection   Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  key          String // template key, e.g. "roof"
+  label        String
+  position     Int
+  status       String? // good | needs_attention | repair_needed | not_checked; null until marked
+  note         String?
+  readingUnit  String? // set for items that take a reading, e.g. "°F"
+  reading      Float?
+
+  media InspectionMedia[]
+
+  @@unique([inspectionId, key])
+}
+
+// A photo or video in the private media bucket. Only the object path is stored; viewers get
+// short-lived signed URLs after a permission check.
+model InspectionMedia {
+  id           String          @id @default(cuid())
+  inspectionId String
+  inspection   Inspection      @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  itemId       String?
+  item         InspectionItem? @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  kind         String // photo | video
+  path         String          @unique
+  contentType  String
+  size         Int
+  createdAt    DateTime        @default(now())
+
+  @@index([inspectionId])
+  @@index([itemId])
+}
+
+// In-app notifications. Email goes out alongside when the user allows it; push can later be
+// another delivery channel for the same rows.
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String // e.g. inspection_submitted
+  title     String
+  body      String?
+  link      String // in-app path to open
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
 }

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { CalendarDays, Check, ClipboardCheck, Home as HomeIcon, TriangleAlert, Users } from "lucide-react";
+import { CalendarDays, Check, CircleCheckBig, ClipboardCheck, Home as HomeIcon, TriangleAlert } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { clientScope, isAdmin, propertyScope, type CompanyContext } from "@/lib/authz";
+import { clientScope, inspectionScope, isAdmin, propertyScope, type CompanyContext } from "@/lib/authz";
 import { clientName } from "@/lib/fields";
 import { todayBounds } from "@/lib/time";
 import { LocalTime } from "@/components/local-time";
@@ -60,7 +60,7 @@ export async function CompanyDashboard({ ctx, joined }: { ctx: CompanyContext; j
   const { start, end } = todayBounds(user?.timezone);
   const weekEnd = new Date(end.getTime() + 7 * DAY_MS);
 
-  const [properties, clients, todaysChecks, upcoming, teamSize, unassigned] = await Promise.all([
+  const [properties, clients, todaysChecks, upcoming, teamSize, unassigned, completedToday, inProgress] = await Promise.all([
     prisma.home.count({ where: scope }),
     prisma.client.count({ where: clientScope(ctx) }),
     prisma.visit.findMany({
@@ -71,7 +71,17 @@ export async function CompanyDashboard({ ctx, joined }: { ctx: CompanyContext; j
     prisma.visit.count({ where: { scheduledFor: { gte: end, lt: weekEnd }, home: scope } }),
     admin ? prisma.companyMember.count({ where: { companyId: ctx.company.id } }) : 0,
     admin ? prisma.home.count({ where: { companyId: ctx.company.id, assignedEmployeeId: null } }) : 0,
+    prisma.inspection.findMany({
+      where: { ...inspectionScope(ctx), status: "submitted", submittedAt: { gte: start, lt: end } },
+      select: { homeId: true },
+    }),
+    prisma.inspection.findMany({
+      where: { ...inspectionScope(ctx), status: "draft" },
+      orderBy: { startedAt: "desc" },
+      include: { home: true, items: { select: { status: true } } },
+    }),
   ]);
+  const checkedToday = new Set(completedToday.map((i) => i.homeId));
 
   return (
     <div>
@@ -87,8 +97,8 @@ export async function CompanyDashboard({ ctx, joined }: { ctx: CompanyContext; j
 
       <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat href={`${hw}/properties`} label={admin ? "Properties" : "Your properties"} value={properties} icon={HomeIcon} />
-        <Stat href={`${hw}/clients`} label="Clients" value={clients} icon={Users} />
         <Stat href="#today" label="Checks today" value={todaysChecks.length} icon={ClipboardCheck} />
+        <Stat href={`${hw}/inspections`} label="Completed today" value={completedToday.length} icon={CircleCheckBig} />
         <Stat href={`${hw}/schedule`} label="Next 7 days" value={upcoming} icon={CalendarDays} />
       </div>
 
@@ -103,6 +113,30 @@ export async function CompanyDashboard({ ctx, joined }: { ctx: CompanyContext; j
       )}
 
       {admin && properties === 0 && <GettingStarted clients={clients} teamSize={teamSize} />}
+
+      {inProgress.length > 0 && (
+        <section className="mt-8">
+          <h2 className="text-lg font-bold text-ink">In progress</h2>
+          <ul className="mt-3 flex flex-col gap-2">
+            {inProgress.map((i) => (
+              <li key={i.id}>
+                <Link
+                  href={`${hw}/inspections/${i.id}`}
+                  className="flex items-center justify-between gap-3 rounded-2xl bg-pending-soft px-4 py-3 shadow-sm"
+                >
+                  <span className="min-w-0 text-sm">
+                    <span className="block font-semibold text-ink">{i.home.nickname}</span>
+                    <span className="block text-ink-muted">
+                      {i.items.filter((x) => x.status).length} of {i.items.length} checked
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-sm font-semibold text-pending">Continue</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section id="today" className="mt-8 scroll-mt-4">
         <h2 className="text-lg font-bold text-ink">Today&apos;s checks</h2>
@@ -121,7 +155,7 @@ export async function CompanyDashboard({ ctx, joined }: { ctx: CompanyContext; j
                   <span className="w-16 shrink-0 pt-0.5 text-sm font-bold text-accent">
                     <LocalTime iso={v.scheduledFor.toISOString()} style="time" />
                   </span>
-                  <span className="min-w-0">
+                  <span className="min-w-0 flex-1">
                     <span className="block font-semibold text-ink">{v.home.nickname}</span>
                     <span className="block truncate text-sm text-ink-muted">{v.home.address}</span>
                     <span className="mt-0.5 block text-xs text-ink-muted">
@@ -134,6 +168,9 @@ export async function CompanyDashboard({ ctx, joined }: { ctx: CompanyContext; j
                         .join(" · ")}
                     </span>
                   </span>
+                  {checkedToday.has(v.homeId) && (
+                    <span className="shrink-0 rounded-full bg-accent-soft px-2.5 py-0.5 text-[11px] font-semibold text-accent">Done</span>
+                  )}
                 </Link>
               </li>
             ))}

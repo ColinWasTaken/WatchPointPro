@@ -14,6 +14,7 @@ import { ConfirmButton } from "@/components/confirm-button";
 import { removeAssignmentAction, cancelInviteAction } from "@/lib/actions/homes";
 import { InviteForm } from "./invite-form";
 import { DeleteHomeForm } from "./delete-home-form";
+import { HomeChecks } from "./home-checks";
 
 export default async function HomeDetailPage(
   props: PageProps<"/dashboard/homeowner/homes/[homeId]">,
@@ -187,11 +188,14 @@ export default async function HomeDetailPage(
       </>
       )}
 
+      {managed ? (
+        <HomeChecks homeId={home.id} companyName={managed.name} />
+      ) : (
       <div className="mt-8">
         <h2 className="text-lg font-bold text-ink">Updates</h2>
         <UpdatesFeed
           reports={reports}
-          messages={managed ? [] : messages}
+          messages={messages}
           currentUserId={session.user.id}
           reportHrefBase={`/dashboard/homeowner/homes/${home.id}/reports`}
         />
@@ -201,8 +205,9 @@ export default async function HomeDetailPage(
         >
           View all reports
         </Link>
-        {!managed && <MessageComposer homeId={home.id} recipientOptions={activeWatchers} />}
+        <MessageComposer homeId={home.id} recipientOptions={activeWatchers} />
       </div>
+      )}
 
       {!managed && (
         <div className="mt-10">

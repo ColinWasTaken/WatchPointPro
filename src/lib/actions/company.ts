@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { deletePhoto, savePhoto } from "@/lib/uploads";
+import { removeInspectionMedia } from "@/lib/media";
 import {
   companyEmployees,
   findClient,
@@ -343,11 +344,15 @@ export async function deletePropertyAction(homeId: string) {
   if (!home) return;
 
   const reports = await prisma.report.findMany({ where: { homeId: home.id } });
+  const inspections = await prisma.inspection.findMany({ where: { homeId: home.id }, select: { id: true } });
   const photos = [home.photoUrl, ...reports.flatMap((r) => JSON.parse(r.photoUrls) as string[])];
   const clientId = home.clientId;
 
   await prisma.home.delete({ where: { id: home.id } });
-  await Promise.all(photos.map((url) => deletePhoto(url)));
+  await Promise.all([
+    ...photos.map((url) => deletePhoto(url)),
+    ...inspections.map((i) => removeInspectionMedia(i.id)),
+  ]);
 
   revalidatePath("/dashboard/homewatcher/clients");
   redirect(clientId ? `/dashboard/homewatcher/clients/${clientId}` : "/dashboard/homewatcher/clients");

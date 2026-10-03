@@ -14,6 +14,7 @@ const clients = link(`${hw}/clients`, "Clients", under(`${hw}/clients`));
 const company = link(`${hw}/company`, "Company", under(`${hw}/company`));
 const dashboard = link(hw, "Dashboard", (p) => p === hw || p.startsWith(`${hw}/homes`));
 const properties = link(`${hw}/properties`, "Properties", under(`${hw}/properties`));
+const inspections = link(`${hw}/inspections`, "Inspections", under(`${hw}/inspections`));
 
 const LINKS = {
   homeowner: [
@@ -22,8 +23,8 @@ const LINKS = {
   ],
   // An independent homewatcher, working from homeowners' invitations.
   homewatcher: [{ ...dashboard, label: "Homes" }, clients, company, schedule, settings],
-  companyAdmin: [dashboard, properties, clients, schedule, link(`${hw}/team`, "Team", under(`${hw}/team`)), company, settings],
-  companyEmployee: [dashboard, properties, clients, schedule, company, settings],
+  companyAdmin: [dashboard, properties, inspections, clients, schedule, link(`${hw}/team`, "Team", under(`${hw}/team`)), company, settings],
+  companyEmployee: [dashboard, properties, inspections, clients, schedule, company, settings],
 };
 
 export type NavVariant = keyof typeof LINKS;

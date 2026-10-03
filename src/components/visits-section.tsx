@@ -4,6 +4,18 @@ import { deleteVisitAction } from "@/lib/actions/visits";
 import { LocalTime } from "./local-time";
 import { VisitForm } from "./visit-form";
 
+const RECENT_MS = 2 * 60 * 60 * 1000;
+
+// Upcoming visits, plus ones from the last two hours so a visit in progress still shows.
+function currentVisits(homeId: string) {
+  return prisma.visit.findMany({
+    where: { homeId, scheduledFor: { gte: new Date(Date.now() - RECENT_MS) } },
+    orderBy: { scheduledFor: "asc" },
+    include: { createdBy: true },
+    take: 10,
+  });
+}
+
 export async function VisitsSection({
   homeId,
   title = "Visit schedule",
@@ -16,12 +28,7 @@ export async function VisitsSection({
   // Which visits to show a cancel button for; the action enforces the same rule.
   canCancel?: (visit: { createdById: string }) => boolean;
 }) {
-  const visits = await prisma.visit.findMany({
-    where: { homeId, scheduledFor: { gte: new Date(Date.now() - 2 * 60 * 60 * 1000) } },
-    orderBy: { scheduledFor: "asc" },
-    include: { createdBy: true },
-    take: 10,
-  });
+  const visits = await currentVisits(homeId);
 
   return (
     <div className="mt-8">
@@ -30,7 +37,7 @@ export async function VisitsSection({
         {title}
       </h2>
       {visits.length === 0 ? (
-        <p className="mt-2 text-sm text-ink-muted">No upcoming visits.</p>
+        <p className="mt-2 text-sm text-ink-muted">Nothing scheduled.</p>
       ) : (
         <ul className="mt-2 flex flex-col gap-2">
           {visits.map((v) => (

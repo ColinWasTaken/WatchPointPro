@@ -68,6 +68,11 @@ export function clientScope(ctx: CompanyContext) {
     : { companyId: ctx.company.id, homes: { some: { assignedEmployeeId: ctx.userId } } };
 }
 
+// Inspections of properties this member may see.
+export function inspectionScope(ctx: CompanyContext) {
+  return { companyId: ctx.company.id, home: propertyScope(ctx) };
+}
+
 // Loaders return null (never someone else's row) when the record is out of scope, so callers
 // respond with "not found" and don't reveal that the record exists.
 export async function findProperty(ctx: CompanyContext, homeId: string) {

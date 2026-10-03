@@ -4,6 +4,7 @@ import { BackLink } from "@/components/back-link";
 import { PropertyForm } from "@/components/company-forms";
 import { ConfirmButton } from "@/components/confirm-button";
 import { VisitsSection } from "@/components/visits-section";
+import { HomeCheckPanel } from "./home-check-panel";
 import { companyEmployees, getPropertyOr404, isAdmin, requireCompany } from "@/lib/authz";
 import { clientName } from "@/lib/fields";
 import { deletePropertyAction, updatePropertyAction } from "@/lib/actions/company";
@@ -44,6 +45,8 @@ export default async function PropertyPage(props: PageProps<"/dashboard/homewatc
           : "No team member assigned"}
       </p>
 
+      <HomeCheckPanel homeId={property.id} />
+
       <VisitsSection
         homeId={property.id}
         title="Scheduled checks"
@@ -64,10 +67,12 @@ export default async function PropertyPage(props: PageProps<"/dashboard/homewatc
           </div>
           <div className="mt-8 rounded-3xl bg-surface p-5 shadow-sm">
             <h3 className="font-bold text-danger">Delete property</h3>
-            <p className="mt-1 text-sm text-ink-muted">Permanently removes this property and its reports.</p>
+            <p className="mt-1 text-sm text-ink-muted">
+              Permanently removes this property and its home-check reports, photos, and videos.
+            </p>
             <form action={deletePropertyAction.bind(null, property.id)} className="mt-2">
               <ConfirmButton
-                message={`Delete ${property.nickname} and all its reports?`}
+                message={`Delete ${property.nickname}? Its home-check reports, photos, and videos will be deleted too.`}
                 className="rounded-full border border-danger px-4 py-2 text-sm font-semibold text-danger hover:bg-danger hover:text-white"
               >
                 Delete property

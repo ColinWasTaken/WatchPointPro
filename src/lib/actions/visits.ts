@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { appUrl, emails, formatWhen } from "@/lib/email";
-import { notifyUser } from "@/lib/notify";
+import { notify } from "@/lib/notify";
 import { findProperty, getCompanyContext, isAdmin } from "@/lib/authz";
 
 export type ActionState = { error?: string; success?: string };
@@ -75,8 +75,15 @@ export async function scheduleVisitAction(
     recipients
       .filter((id) => id && id !== session.user.id)
       .map((id) =>
-        notifyUser(id, (tz) =>
-          emails.visitScheduled(by, home.nickname, formatWhen(when, tz), `${appUrl()}/dashboard/${path}`),
+        notify(
+          id,
+          (tz) => ({
+            type: "visit_scheduled",
+            title: `${as === "company" ? "Check" : "Visit"} scheduled at ${home.nickname}`,
+            body: `${formatWhen(when, tz)} · scheduled by ${by}`,
+            link: `/dashboard/${path}`,
+          }),
+          (tz) => emails.visitScheduled(by, home.nickname, formatWhen(when, tz), `${appUrl()}/dashboard/${path}`),
         ),
       ),
   );
