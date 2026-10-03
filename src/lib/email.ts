@@ -158,25 +158,6 @@ export const emails = {
     html: layout("Home check completed", `${esc(company.name)} completed a home check at <b>${esc(place)}</b>. ${esc(outcome)}`, "View report", link, company),
     ...fromCompany(company),
   }),
-  newInquiry: (i: { name: string; email: string; phone: string | null; location: string | null; away: string | null; plan: string | null; message: string | null }) => ({
-    subject: `Consultation request from ${oneLine(i.name)}`,
-    html: layout(
-      "New consultation request",
-      [
-        `<b>${esc(i.name)}</b> asked about home watch through the website.`,
-        `Email: ${esc(i.email)}`,
-        i.phone && `Phone: ${esc(i.phone)}`,
-        i.location && `Home: ${esc(i.location)}`,
-        i.away && `Away: ${esc(i.away)}`,
-        i.plan && `Plan: ${esc(i.plan)}`,
-        i.message && `Message:<br>${esc(i.message).replace(/\r?\n/g, "<br>")}`,
-      ]
-        .filter(Boolean)
-        .join("<br>"),
-      "Reply by email",
-      `mailto:${encodeURIComponent(i.email)}`,
-    ),
-  }),
   issueResolved: (company: FromCompany, issue: string, place: string, link: string) => ({
     subject: `Resolved: ${oneLine(issue)} at ${oneLine(place)}`,
     html: layout("Issue resolved", `${esc(company.name)} marked <b>${esc(issue)}</b> at ${esc(place)} as resolved.`, "View issue", link, company),
