@@ -22,6 +22,20 @@ export const DEFAULT_INSPECTION_ITEMS: TemplateItem[] = [
   { key: "other", label: "Other" },
 ];
 
+// What's usual in a home nobody is living in, for the standard readings.
+export type ReadingRange = { low: number; high: number; why: string };
+const TYPICAL: Record<string, ReadingRange & { unit: string }> = {
+  humidity: { unit: "%", low: 30, high: 60, why: "Above 60%, mold and mildew can start to grow." },
+  temperature: { unit: "°F", low: 55, high: 85, why: "Outside this range, the AC or heat may not be keeping up." },
+};
+
+export const RANGED_KEYS = Object.keys(TYPICAL);
+
+export function typicalRange(key: string, unit: string | null): ReadingRange | null {
+  const typical = TYPICAL[key];
+  return typical && typical.unit === unit ? { low: typical.low, high: typical.high, why: typical.why } : null;
+}
+
 // "74°F" and "48%", but "3 ppm".
 export const formatReading = (value: number, unit: string) =>
   `${Number.isInteger(value) ? value : value.toFixed(1)}${/^[a-z]/i.test(unit) ? " " : ""}${unit}`;

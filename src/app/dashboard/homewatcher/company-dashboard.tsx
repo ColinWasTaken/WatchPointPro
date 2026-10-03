@@ -6,6 +6,8 @@ import { clientScope, inspectionScope, isAdmin, issueScope, propertyScope, type 
 import { UNRESOLVED } from "@/lib/issues";
 import { clientName } from "@/lib/fields";
 import { todayBounds } from "@/lib/time";
+import { formatReading } from "@/lib/inspection-template";
+import { readingAlerts } from "@/lib/trends";
 import { LocalTime } from "@/components/local-time";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -61,7 +63,7 @@ export async function CompanyDashboard({ ctx, joined }: { ctx: CompanyContext; j
   const { start, end } = todayBounds(user?.timezone);
   const weekEnd = new Date(end.getTime() + 7 * DAY_MS);
 
-  const [properties, clients, todaysChecks, upcoming, teamSize, unassigned, completedToday, inProgress, openIssues] = await Promise.all([
+  const [properties, clients, todaysChecks, upcoming, teamSize, unassigned, completedToday, inProgress, openIssues, alerts] = await Promise.all([
     prisma.home.count({ where: scope }),
     prisma.client.count({ where: clientScope(ctx) }),
     prisma.visit.findMany({
@@ -82,6 +84,7 @@ export async function CompanyDashboard({ ctx, joined }: { ctx: CompanyContext; j
       include: { home: true, items: { select: { status: true } } },
     }),
     prisma.issue.count({ where: { ...issueScope(ctx), status: UNRESOLVED } }),
+    readingAlerts(scope),
   ]);
   const checkedToday = new Set(completedToday.map((i) => i.homeId));
 
@@ -116,6 +119,41 @@ export async function CompanyDashboard({ ctx, joined }: { ctx: CompanyContext; j
       )}
 
       {admin && properties === 0 && <GettingStarted clients={clients} teamSize={teamSize} />}
+
+      {alerts.length > 0 && (
+        <section className="mt-8">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-ink">
+            <TriangleAlert className="h-4 w-4 text-danger" strokeWidth={2.25} />
+            Readings to look at
+          </h2>
+          <p className="text-sm text-ink-muted">From each property&apos;s latest check, outside the typical range for an empty home.</p>
+          <ul className="mt-3 flex flex-col gap-2">
+            {alerts.map((a) => {
+              const high = a.value > a.range.high;
+              return (
+                <li key={`${a.homeId}-${a.label}`}>
+                  <Link
+                    href={`${hw}/properties/${a.homeId}#readings`}
+                    className="flex items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-3 shadow-sm transition hover:shadow-md"
+                  >
+                    <span className="min-w-0 text-sm">
+                      <span className="block font-semibold text-ink">
+                        {a.nickname}
+                        {a.client && <span className="font-normal text-ink-muted"> · {a.client}</span>}
+                      </span>
+                      <span className="block text-ink-muted">
+                        {a.label} {high ? "above" : "below"} {formatReading(high ? a.range.high : a.range.low, a.unit)}, checked{" "}
+                        <LocalTime iso={a.at} style="relative" />
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-lg font-bold tabular-nums text-danger">{formatReading(a.value, a.unit)}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
 
       {inProgress.length > 0 && (
         <section className="mt-8">

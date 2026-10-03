@@ -13,7 +13,7 @@ import {
   saveInspectionSummaryAction,
   submitInspectionAction,
 } from "@/lib/actions/inspections";
-import type { ItemStatus } from "@/lib/inspection-template";
+import { formatReading, typicalRange, type ItemStatus } from "@/lib/inspection-template";
 import { MEDIA_LIMITS } from "@/lib/media-limits";
 import { forgetUpload, keepUpload, pendingUploads, type QueuedUpload } from "@/lib/offline-uploads";
 
@@ -27,6 +27,7 @@ import { forgetUpload, keepUpload, pendingUploads, type QueuedUpload } from "@/l
 export type EditorMedia = { id: string; kind: "photo" | "video"; url: string };
 export type EditorItem = {
   id: string;
+  key: string;
   label: string;
   status: ItemStatus | null;
   note: string;
@@ -167,6 +168,10 @@ function ItemCard({
   const photoInput = useRef<HTMLInputElement>(null);
   const videoInput = useRef<HTMLInputElement>(null);
   const showDetails = uploads.length > 0 || (open ?? (problem || Boolean(item.note) || item.media.length > 0));
+  // A reading outside what's usual for an empty home is pointed out straight away, while still on site.
+  const range = typicalRange(item.key, item.readingUnit);
+  const value = item.reading.trim() === "" ? NaN : Number(item.reading);
+  const unusual = range && Number.isFinite(value) && (value > range.high || value < range.low) ? range : null;
 
   const setStatus = (status: ItemStatus) => {
     onEdit("status", status);
@@ -225,6 +230,13 @@ function ItemCard({
             <span className="text-ink-muted">{item.readingUnit}</span>
           </span>
         </label>
+      )}
+      {unusual && item.readingUnit && (
+        <p role="status" className="mt-2 text-sm text-danger">
+          {formatReading(value, item.readingUnit)} is outside the typical {unusual.low}–{formatReading(unusual.high, item.readingUnit)}.{" "}
+          {unusual.why}
+          {!problem && " Mark it Attention if it needs follow-up."}
+        </p>
       )}
 
       {showDetails && (

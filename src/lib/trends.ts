@@ -1,21 +1,19 @@
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { clientName } from "@/lib/fields";
+import { RANGED_KEYS, typicalRange, type ReadingRange } from "@/lib/inspection-template";
 
 // Readings over time for one property: every checklist item that takes a reading (indoor
 // temperature and humidity, and any a company added, like a wine fridge), from submitted checks
 // in the last year. Items are grouped by key and unit, so a unit change never mixes scales.
 
 export type Reading = { at: string; value: number };
-export type Range = { low: number; high: number; why: string };
-export type Series = { key: string; label: string; unit: string; readings: Reading[]; range: Range | null };
+export type Series = { key: string; label: string; unit: string; readings: Reading[]; range: ReadingRange | null };
 
 const MAX_READINGS = 40;
-const YEAR = 365 * 24 * 60 * 60 * 1000;
-
-// What's usual in a home nobody is living in, for the standard items.
-const TYPICAL: Record<string, Range & { unit: string }> = {
-  humidity: { unit: "%", low: 30, high: 60, why: "Above 60%, mold and mildew can start to grow." },
-  temperature: { unit: "°F", low: 55, high: 85, why: "Outside this range, the AC or heat may not be keeping up." },
-};
+const DAY = 24 * 60 * 60 * 1000;
+const YEAR = 365 * DAY;
+const ALERT_DAYS = 30;
 
 export async function readingTrends(homeId: string): Promise<Series[]> {
   const items = await prisma.inspectionItem.findMany({
@@ -42,14 +40,66 @@ export async function readingTrends(homeId: string): Promise<Series[]> {
 
   return [...groups.values()]
     .sort((a, b) => a.position - b.position)
-    .map(({ key, label, unit, readings }) => {
-      const typical = TYPICAL[key];
-      return {
-        key,
-        label,
-        unit,
-        readings: readings.slice(-MAX_READINGS),
-        range: typical && typical.unit === unit ? { low: typical.low, high: typical.high, why: typical.why } : null,
-      };
-    });
+    .map(({ key, label, unit, readings }) => ({ key, label, unit, readings: readings.slice(-MAX_READINGS), range: typicalRange(key, unit) }));
+}
+
+export type ReadingAlert = {
+  homeId: string;
+  nickname: string;
+  client: string | null;
+  label: string;
+  value: number;
+  unit: string;
+  at: string;
+  range: ReadingRange;
+};
+
+// For a company's dashboard: properties whose latest check (in the last month) found the indoor
+// temperature or humidity outside the typical range, furthest out first.
+export async function readingAlerts(properties: Prisma.HomeWhereInput): Promise<ReadingAlert[]> {
+  const homes = await prisma.home.findMany({
+    where: properties,
+    select: {
+      id: true,
+      nickname: true,
+      client: { select: { firstName: true, lastName: true } },
+      inspections: {
+        where: { status: "submitted" },
+        orderBy: { submittedAt: "desc" },
+        take: 1,
+        select: {
+          submittedAt: true,
+          items: { where: { key: { in: RANGED_KEYS }, reading: { not: null } }, select: { key: true, label: true, reading: true, readingUnit: true } },
+        },
+      },
+    },
+  });
+
+  const since = Date.now() - ALERT_DAYS * DAY;
+  const found: { alert: ReadingAlert; off: number }[] = [];
+  for (const home of homes) {
+    const latest = home.inspections[0];
+    if (!latest?.submittedAt || latest.submittedAt.getTime() < since) continue;
+    for (const item of latest.items) {
+      const range = typicalRange(item.key, item.readingUnit);
+      if (!range || item.reading === null || !item.readingUnit) continue;
+      // How far outside, as a share of the range, so the worst comes first.
+      const off = Math.max(item.reading - range.high, range.low - item.reading, 0) / (range.high - range.low);
+      if (off === 0) continue;
+      found.push({
+        alert: {
+          homeId: home.id,
+          nickname: home.nickname,
+          client: home.client ? clientName(home.client) : null,
+          label: item.label,
+          value: item.reading,
+          unit: item.readingUnit,
+          at: latest.submittedAt.toISOString(),
+          range,
+        },
+        off,
+      });
+    }
+  }
+  return found.sort((a, b) => b.off - a.off).map((f) => f.alert);
 }

@@ -55,6 +55,7 @@ export default async function InspectionPage(props: PageProps<"/dashboard/homewa
         canDiscard={isAdmin(ctx) || inspection.inspectorId === ctx.userId}
         initialItems={inspection.items.map((i) => ({
           id: i.id,
+          key: i.key,
           label: i.label,
           status: isItemStatus(i.status) ? i.status : null,
           note: i.note ?? "",

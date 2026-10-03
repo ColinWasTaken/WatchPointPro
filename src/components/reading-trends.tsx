@@ -155,7 +155,7 @@ function SeriesCard({ series }: { series: Series }) {
 export function ReadingTrends({ series }: { series: Series[] }) {
   if (series.length === 0) return null;
   return (
-    <section className="mt-8">
+    <section id="readings" className="mt-8 scroll-mt-4">
       <h2 className="text-lg font-bold text-ink">Readings over time</h2>
       <p className="text-sm text-ink-muted">From each home check in the last year.</p>
       <div className="mt-3 flex flex-col gap-3">
