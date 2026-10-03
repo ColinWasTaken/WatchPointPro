@@ -31,7 +31,7 @@ export default async function SubmitReportPage(
         href={`/dashboard/homewatcher/homes/${homeId}`}
         label={`Back to ${assignment.home.nickname}`}
       />
-      <h1 className="mt-4 text-2xl font-bold text-ink">Submit report</h1>
+      <h1 className="mt-4 text-[30px] leading-tight sm:text-[34px] text-ink">Submit report</h1>
       <ReportForm homeId={homeId} items={items} />
     </div>
   );

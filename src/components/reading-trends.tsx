@@ -90,7 +90,7 @@ function SeriesCard({ series }: { series: Series }) {
           )}
         </div>
         <div className="shrink-0 text-right">
-          <p className={`text-2xl font-bold tabular-nums ${latestOutside ? "text-danger" : "text-ink"}`}>
+          <p className={`font-display text-[30px] leading-none tabular-nums ${latestOutside ? "text-danger" : "text-ink"}`}>
             {formatReading(latest.value, unit)}
           </p>
           <p className="text-xs text-ink-muted">

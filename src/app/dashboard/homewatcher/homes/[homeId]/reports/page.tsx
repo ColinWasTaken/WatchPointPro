@@ -26,7 +26,7 @@ export default async function ReportHistoryPage(
   return (
     <div className="mx-auto max-w-2xl">
       <BackLink href={`/dashboard/homewatcher/homes/${homeId}`} label={`Back to ${home.nickname}`} />
-      <h1 className="mt-4 text-2xl font-bold text-ink">All reports</h1>
+      <h1 className="mt-4 text-[30px] leading-tight sm:text-[34px] text-ink">All reports</h1>
       <p className="text-sm text-ink-muted">{reports.length} total</p>
       <ReportList reports={reports} hrefBase={`/dashboard/homewatcher/homes/${homeId}/reports`} />
     </div>

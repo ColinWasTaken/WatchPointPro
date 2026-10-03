@@ -15,7 +15,7 @@ export default async function NewPropertyPage(
   return (
     <div className="mx-auto max-w-lg">
       <BackLink href={`/dashboard/homewatcher/clients/${client.id}`} label={`Back to ${clientName(client)}`} />
-      <h1 className="mb-6 mt-4 text-2xl font-bold text-ink">Add a property for {clientName(client)}</h1>
+      <h1 className="mb-6 mt-4 text-[30px] leading-tight sm:text-[34px] text-ink">Add a property for {clientName(client)}</h1>
       <PropertyForm action={createPropertyAction.bind(null, client.id)} submitLabel="Add property" employees={employees} />
     </div>
   );

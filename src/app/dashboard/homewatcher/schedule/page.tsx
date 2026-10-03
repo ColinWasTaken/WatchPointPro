@@ -39,7 +39,7 @@ export default async function SchedulePage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-bold text-ink">Schedule</h1>
+      <h1 className="text-[30px] leading-tight sm:text-[34px] text-ink">Schedule</h1>
 
       <h2 className="mt-6 flex items-center gap-1.5 text-lg font-bold text-ink">
         <CalendarDays className="h-4 w-4 text-accent" strokeWidth={2} />

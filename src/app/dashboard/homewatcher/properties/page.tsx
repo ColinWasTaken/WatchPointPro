@@ -30,7 +30,7 @@ export default async function PropertiesPage(props: PageProps<"/dashboard/homewa
     <div className="mx-auto max-w-3xl">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-ink">Properties</h1>
+          <h1 className="text-[30px] leading-tight sm:text-[34px] text-ink">Properties</h1>
           <p className="text-sm text-ink-muted">
             {admin ? "" : "Assigned to you · "}
             {properties.length} {properties.length === 1 ? "property" : "properties"}

@@ -35,7 +35,7 @@ export function BrandColorField({ defaultValue, companyName, logoUrl }: { defaul
       <div className="flex items-center gap-2">
         <input
           type="color"
-          value={brand?.color ?? "#6b8a63"}
+          value={brand?.color ?? "#3e5a49"}
           onChange={(e) => set(e.target.value)}
           aria-label="Pick a brand color"
           className="h-11 w-12 shrink-0 cursor-pointer rounded-2xl border border-border bg-background p-1"
@@ -46,9 +46,9 @@ export function BrandColorField({ defaultValue, companyName, logoUrl }: { defaul
           name="brandColor"
           defaultValue={defaultValue}
           onInput={(e) => setValue(e.currentTarget.value)}
-          placeholder="#6b8a63"
+          placeholder="#3e5a49"
           pattern="#[0-9a-fA-F]{6}"
-          title="A color code like #6b8a63"
+          title="A color code like #3e5a49"
           className={`${inputClass} min-w-0 flex-1`}
         />
         {value && (

@@ -10,7 +10,7 @@ export default async function ResetPasswordPage(props: PageProps<"/reset-passwor
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-6 py-16">
       <div className="w-full max-w-sm rounded-3xl bg-surface p-8 shadow-md">
-        <h1 className="mb-6 text-xl font-bold text-ink">Choose a new password</h1>
+        <h1 className="mb-6 text-[26px] leading-tight text-ink">Choose a new password</h1>
         {valid && value ? (
           <ResetPasswordForm token={value} />
         ) : (

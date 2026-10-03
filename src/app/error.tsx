@@ -20,7 +20,7 @@ export default function GlobalError({
       <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-pending-soft text-pending">
         <TriangleAlert className="h-7 w-7" strokeWidth={1.75} />
       </div>
-      <h1 className="text-2xl font-bold text-ink">Something went wrong</h1>
+      <h1 className="text-[30px] leading-tight sm:text-[34px] text-ink">Something went wrong</h1>
       <p className="max-w-sm text-ink-muted">
         We hit a snag loading this page. Give it another try.
       </p>

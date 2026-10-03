@@ -11,7 +11,7 @@ export default async function ChecklistPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <BackLink href="/dashboard/homewatcher/company" label={`Back to ${ctx.company.name}`} />
-      <h1 className="mt-3 text-2xl font-bold text-ink">Home check checklist</h1>
+      <h1 className="mt-3 text-[30px] leading-tight sm:text-[34px] text-ink">Home check checklist</h1>
       <p className="mt-1 text-sm text-ink-muted">
         Every home check goes through these items, in this order. Items with a reading ask for a number, like the indoor
         temperature. Checks already started keep the list they began with.

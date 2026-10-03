@@ -21,7 +21,7 @@ export default async function EditHomePage(
   return (
     <div className="mx-auto max-w-lg">
       <BackLink href={`/dashboard/homeowner/homes/${homeId}`} label={`Back to ${home.nickname}`} />
-      <h1 className="mt-4 text-2xl font-bold text-ink">Edit home</h1>
+      <h1 className="mt-4 text-[30px] leading-tight sm:text-[34px] text-ink">Edit home</h1>
       <EditHomeForm
         homeId={home.id}
         nickname={home.nickname}

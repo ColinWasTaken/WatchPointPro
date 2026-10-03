@@ -21,7 +21,7 @@ export async function SettingsPage({ role }: { role: "homeowner" | "homewatcher"
 
   return (
     <div className="mx-auto max-w-lg">
-      <h1 className="text-2xl font-bold text-ink">Settings</h1>
+      <h1 className="text-[30px] leading-tight sm:text-[34px] text-ink">Settings</h1>
       <section className="mt-6 rounded-3xl bg-surface p-6 shadow-sm">
         <h2 className="mb-4 text-lg font-bold text-ink">Profile</h2>
         <ProfileForm name={user.name ?? ""} email={user.email} notifyEmail={user.notifyEmail} />

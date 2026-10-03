@@ -24,7 +24,7 @@ export async function ContractorSearch({
   return (
     <div className="mx-auto max-w-2xl">
       <BackLink href={back.href} label={back.label} />
-      <h1 className="mt-4 text-2xl font-bold text-ink">
+      <h1 className="mt-4 text-[30px] leading-tight sm:text-[34px] text-ink">
         {capitalize(trade.plural)} near {home.nickname}
       </h1>
       <p className="text-sm text-ink-muted">Searching around {home.address}</p>

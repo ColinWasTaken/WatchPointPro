@@ -45,7 +45,7 @@ export default async function ClientPage(props: PageProps<"/dashboard/homewatche
   return (
     <div className="mx-auto max-w-lg">
       <BackLink href="/dashboard/homewatcher/clients" label="Back to clients" />
-      <h1 className="mt-4 text-2xl font-bold text-ink">{clientName(client)}</h1>
+      <h1 className="mt-4 text-[30px] leading-tight sm:text-[34px] text-ink">{clientName(client)}</h1>
       <div className="mt-1 flex flex-col gap-0.5 text-sm text-ink-muted">
         {client.email && (
           <a href={`mailto:${client.email}`} className="flex items-center gap-1.5 hover:text-accent">

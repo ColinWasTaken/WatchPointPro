@@ -82,7 +82,7 @@ export default async function HomeDetailPage(
       )}
 
       <div className="mt-4 flex items-start justify-between gap-3">
-        <h1 className="text-2xl font-bold text-ink">{home.nickname}</h1>
+        <h1 className="text-[30px] leading-tight sm:text-[34px] text-ink">{home.nickname}</h1>
         {!managed && (
         <Link
           href={`/dashboard/homeowner/homes/${home.id}/edit`}

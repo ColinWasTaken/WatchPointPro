@@ -18,7 +18,7 @@ export default async function CompanyPage() {
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-soft text-accent">
           <Building2 className="h-6 w-6" strokeWidth={1.75} />
         </div>
-        <h1 className="mt-4 text-2xl font-bold text-ink">Set up your company</h1>
+        <h1 className="mt-4 text-[30px] leading-tight sm:text-[34px] text-ink">Set up your company</h1>
         <p className="mt-1 text-sm text-ink-muted">
           Your company holds your clients and the properties you watch. Working solo? Create a company for yourself and add
           team members later.
@@ -34,7 +34,7 @@ export default async function CompanyPage() {
   const checklist = await companyChecklist(company.id);
   return (
     <div className="mx-auto max-w-lg">
-      <h1 className="text-2xl font-bold text-ink">{company.name}</h1>
+      <h1 className="text-[30px] leading-tight sm:text-[34px] text-ink">{company.name}</h1>
       <p className="text-sm text-ink-muted">
         {role === "admin" ? "You're an admin of this company." : "You're a team member. Only admins can edit company details."}
       </p>

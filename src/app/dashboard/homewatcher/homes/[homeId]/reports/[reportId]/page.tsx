@@ -33,7 +33,7 @@ export default async function ReportDetailPage(
   return (
     <div className="mx-auto max-w-2xl">
       <BackLink href={`/dashboard/homewatcher/homes/${homeId}/reports`} label="All reports" />
-      <h1 className="mt-4 text-2xl font-bold text-ink">{home.nickname}</h1>
+      <h1 className="mt-4 text-[30px] leading-tight sm:text-[34px] text-ink">{home.nickname}</h1>
       <ReportDetail report={report} items={items} watcherName={report.homewatcher.name ?? report.homewatcher.email} />
       {canDelete && (
         <form action={deleteReportAction.bind(null, report.id)} className="mt-6">

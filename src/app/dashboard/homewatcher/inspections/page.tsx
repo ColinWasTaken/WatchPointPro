@@ -25,7 +25,7 @@ export default async function InspectionsPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-bold text-ink">Inspections</h1>
+      <h1 className="text-[30px] leading-tight sm:text-[34px] text-ink">Inspections</h1>
       <p className="text-sm text-ink-muted">Start a home check from a property&apos;s page.</p>
 
       {inProgress.length > 0 && (

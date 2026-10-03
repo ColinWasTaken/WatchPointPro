@@ -24,7 +24,7 @@ export default async function PropertyPage(props: PageProps<"/dashboard/homewatc
         href={property.client ? `/dashboard/homewatcher/clients/${property.client.id}` : "/dashboard/homewatcher/clients"}
         label={property.client ? `Back to ${clientName(property.client)}` : "Back to clients"}
       />
-      <h1 className="mt-4 text-2xl font-bold text-ink">{property.nickname}</h1>
+      <h1 className="mt-4 text-[30px] leading-tight sm:text-[34px] text-ink">{property.nickname}</h1>
       <a
         href={`https://maps.google.com/?q=${encodeURIComponent(property.address)}`}
         target="_blank"

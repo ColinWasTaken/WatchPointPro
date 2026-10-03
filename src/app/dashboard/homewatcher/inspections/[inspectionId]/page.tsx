@@ -43,7 +43,7 @@ export default async function InspectionPage(props: PageProps<"/dashboard/homewa
   return (
     <div className="mx-auto max-w-xl">
       {back}
-      <h1 className="mt-4 text-2xl font-bold text-ink">Home check</h1>
+      <h1 className="mt-4 text-[30px] leading-tight sm:text-[34px] text-ink">Home check</h1>
       <p className="text-sm text-ink-muted">{inspection.home.address}</p>
       <p className="mb-2 text-xs text-ink-muted">
         Started <LocalTime iso={inspection.startedAt.toISOString()} style="weekday" /> by{" "}

@@ -40,7 +40,7 @@ export default async function TeamPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-bold text-ink">Team</h1>
+      <h1 className="text-[30px] leading-tight sm:text-[34px] text-ink">Team</h1>
       <p className="text-sm text-ink-muted">
         {members.length} {members.length === 1 ? "person" : "people"} at {ctx.company.name}
       </p>

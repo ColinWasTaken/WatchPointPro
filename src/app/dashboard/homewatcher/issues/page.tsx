@@ -27,7 +27,7 @@ export default async function IssuesPage(props: PageProps<"/dashboard/homewatche
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="text-2xl font-bold text-ink">Issues</h1>
+      <h1 className="text-[30px] leading-tight sm:text-[34px] text-ink">Issues</h1>
       <p className="text-sm text-ink-muted">Problems found during home checks, tracked until they&apos;re resolved.</p>
       <div className="mt-4 flex gap-2">
         <Link href="/dashboard/homewatcher/issues" className={chip(!resolved)}>

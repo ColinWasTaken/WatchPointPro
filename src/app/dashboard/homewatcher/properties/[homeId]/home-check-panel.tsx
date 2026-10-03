@@ -47,7 +47,7 @@ export async function HomeCheckPanel({ homeId }: { homeId: string }) {
       ) : (
         <form action={startInspectionAction.bind(null, homeId)}>
           <PendingButton pendingLabel="Starting…" className={bigButton}>
-            <ClipboardCheck className="h-6 w-6" strokeWidth={2} /> START HOME CHECK
+            <ClipboardCheck className="h-6 w-6" strokeWidth={2} /> Start home check
           </PendingButton>
         </form>
       )}

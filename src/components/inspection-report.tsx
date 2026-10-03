@@ -96,7 +96,7 @@ export function InspectionReport({
 
       {showPlace && (
         <>
-          <h1 className="text-2xl font-bold text-ink">{inspection.home.nickname}</h1>
+          <h1 className="text-[30px] leading-tight sm:text-[34px] text-ink">{inspection.home.nickname}</h1>
           <p className="text-sm text-ink-muted">{inspection.home.address}</p>
         </>
       )}

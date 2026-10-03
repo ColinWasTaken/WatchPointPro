@@ -1,12 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { Hanken_Grotesk, Libre_Caslon_Display, Libre_Caslon_Text } from "next/font/google";
 import { auth } from "@/auth";
-
-const display = Libre_Caslon_Display({ subsets: ["latin"], weight: "400", variable: "--font-site-display" });
-const caslon = Libre_Caslon_Text({ subsets: ["latin"], weight: ["400", "700"], style: ["normal", "italic"], variable: "--font-site-serif" });
-const sans = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-site-sans" });
 
 const PHOTO = {
   src: "https://images.unsplash.com/photo-1601041597271-71988152f98b?auto=format&fit=crop&q=80&w=1400",
@@ -36,11 +31,11 @@ export default async function HomePage() {
   const firstName = session?.user?.name?.trim().split(/\s+/)[0];
 
   return (
-    <div className={`${display.variable} ${caslon.variable} ${sans.variable} site min-h-screen bg-paper font-site text-harbor antialiased`}>
+    <div className="site min-h-screen bg-paper font-site text-harbor antialiased">
       <div className="mx-auto grid min-h-screen w-full max-w-[1180px] items-center gap-8 px-6 py-8 md:px-10 lg:grid-cols-12 lg:gap-12 lg:py-12">
         <main className="lg:col-span-6">
           <p className="flex items-center gap-3">
-            <Image src="/icons/icon-192.png" alt="" width={36} height={36} className="h-9 w-9 rounded-[10px]" priority />
+            <Image src="/icons/icon-192.png" alt="" width={36} height={36} className="h-9 w-9 rounded-[10px]" priority unoptimized />
             <span className="font-display text-[24px] text-harbor">WatchPointPro</span>
           </p>
           <h1 className="site-rise mt-8 font-display text-[44px] leading-[1.05] text-balance text-harbor sm:text-[56px] lg:mt-12 lg:text-[64px]">

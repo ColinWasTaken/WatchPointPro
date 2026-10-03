@@ -113,7 +113,7 @@ export default async function ClientsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-ink">Your clients</h1>
+      <h1 className="text-[30px] leading-tight sm:text-[34px] text-ink">Your clients</h1>
       {companySection}
 
       <h2 className="mt-10 text-lg font-bold text-ink">Homeowners who invited you</h2>

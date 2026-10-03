@@ -7,7 +7,7 @@ export default function NotFound() {
       <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent">
         <SearchX className="h-7 w-7" strokeWidth={1.75} />
       </div>
-      <h1 className="text-2xl font-bold text-ink">We couldn&apos;t find that</h1>
+      <h1 className="text-[30px] leading-tight sm:text-[34px] text-ink">We couldn&apos;t find that</h1>
       <p className="max-w-sm text-ink-muted">
         This page doesn&apos;t exist, or you may not have access to it.
       </p>

@@ -17,7 +17,7 @@ function Stat({ href, label, value, icon: Icon }: { href: string; label: string;
   return (
     <Link href={href} className="rounded-3xl bg-surface p-4 shadow-sm transition hover:shadow-md">
       <Icon className="h-4 w-4 text-accent" strokeWidth={2} />
-      <p className="mt-2 text-2xl font-bold text-ink">{value}</p>
+      <p className="mt-2 font-display text-[32px] leading-none text-ink">{value}</p>
       <p className="text-xs font-semibold text-ink-muted">{label}</p>
     </Link>
   );
@@ -91,7 +91,7 @@ export async function CompanyDashboard({ ctx, joined }: { ctx: CompanyContext; j
   return (
     <div>
       <p className="text-sm font-semibold text-ink-muted">{ctx.company.name}</p>
-      <h1 className="text-2xl font-bold text-ink">Dashboard</h1>
+      <h1 className="text-[30px] leading-tight sm:text-[34px] text-ink">Dashboard</h1>
 
       {joined && (
         <p className="mt-4 rounded-2xl bg-accent-soft px-4 py-3 text-sm text-accent">

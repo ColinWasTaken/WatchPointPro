@@ -1,5 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
-import { Bell, Home as HomeIcon } from "lucide-react";
+import { Bell } from "lucide-react";
 import { SignOutButton } from "@/app/dashboard/sign-out-button";
 import { DashboardNav, type NavVariant } from "./dashboard-nav";
 import { TimezoneSync } from "./timezone-sync";
@@ -21,11 +22,9 @@ export function DashboardHeader({
     <TimezoneSync />
     <OfflineBanner />
     <header className="flex items-center justify-between bg-surface px-6 pb-2 pt-4">
-      <Link href={homeHref} className="flex items-center gap-2 text-ink">
-        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-accent-soft text-accent">
-          <HomeIcon className="h-4 w-4" strokeWidth={2} />
-        </span>
-        <span className="text-lg font-bold">WatchPointPro</span>
+      <Link href={homeHref} className="flex items-center gap-2.5 text-ink">
+        <Image src="/icons/icon-192.png" alt="" width={32} height={32} className="h-8 w-8 rounded-[9px]" priority unoptimized />
+        <span className="font-display text-[22px] leading-none">WatchPointPro</span>
       </Link>
       <div className="flex items-center gap-2 sm:gap-4">
         <span className="hidden text-sm text-ink-muted sm:inline">{userEmail}</span>

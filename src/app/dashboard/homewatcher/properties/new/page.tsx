@@ -19,7 +19,7 @@ export default async function NewPropertyPage() {
   return (
     <div className="mx-auto max-w-lg">
       <BackLink href="/dashboard/homewatcher/properties" label="Back to properties" />
-      <h1 className="mb-6 mt-4 text-2xl font-bold text-ink">Add a property</h1>
+      <h1 className="mb-6 mt-4 text-[30px] leading-tight sm:text-[34px] text-ink">Add a property</h1>
       {clients.length === 0 ? (
         <div className="rounded-3xl bg-surface p-6 text-sm text-ink-muted shadow-sm">
           Every property belongs to a client.{" "}

@@ -30,7 +30,7 @@ export default async function InvitePage(props: PageProps<"/invite">) {
   if (!invitation) {
     return (
       <Card>
-        <h1 className="mb-2 text-xl font-bold text-ink">Invitation not available</h1>
+        <h1 className="mb-2 text-[26px] leading-tight text-ink">Invitation not available</h1>
         <p className="mb-4 text-sm text-ink-muted">
           This invitation link is invalid or has expired. Ask whoever invited you to send a new one. If you already
           accepted it, just sign in.
@@ -129,7 +129,7 @@ export default async function InvitePage(props: PageProps<"/invite">) {
         <CompanyMark company={company} size="lg" />
         {invitation.kind === "client" ? (
           <>
-            <h1 className="mt-3 text-xl font-bold text-ink">Hi {invitation.client.firstName}, you&apos;re invited</h1>
+            <h1 className="mt-3 text-[26px] leading-tight text-ink">Hi {invitation.client.firstName}, you&apos;re invited</h1>
             <p className="mt-2 text-sm text-ink-muted">
               <span className="font-semibold text-ink">{company.name}</span> uses WatchPointPro to provide digital
               home-check reports. Create your account to view inspections, photos, videos, and property updates.
@@ -137,7 +137,7 @@ export default async function InvitePage(props: PageProps<"/invite">) {
           </>
         ) : (
           <>
-            <h1 className="mt-3 text-xl font-bold text-ink">Join {company.name}</h1>
+            <h1 className="mt-3 text-[26px] leading-tight text-ink">Join {company.name}</h1>
             <p className="mt-2 text-sm text-ink-muted">
               {invitation.invitedBy?.name ?? company.name} invited you to join the team on WatchPointPro, where
               you&apos;ll see your assigned properties and home checks

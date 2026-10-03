@@ -40,7 +40,7 @@ export default async function HomeownerDashboardPage(props: PageProps<"/dashboar
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-ink">Your homes</h1>
+        <h1 className="text-[30px] leading-tight sm:text-[34px] text-ink">Your homes</h1>
         <Link
           href="/dashboard/homeowner/homes/new"
           className="flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-strong"

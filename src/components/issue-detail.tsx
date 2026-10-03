@@ -47,7 +47,7 @@ export function IssueDetail({
         <span className="text-xs font-semibold text-ink-muted">{SEVERITY_LABEL[issue.severity] ?? issue.severity}</span>
         <IssueStatusBadge status={issue.status} />
       </div>
-      <h1 className="mt-2 text-2xl font-bold text-ink">{issue.title}</h1>
+      <h1 className="mt-2 text-[30px] leading-tight sm:text-[34px] text-ink">{issue.title}</h1>
       <p className="text-sm text-ink-muted">{issue.home.address}</p>
       <p className="mt-1 text-sm text-ink-muted">
         Reported <LocalTime iso={issue.createdAt.toISOString()} style="longDate" />

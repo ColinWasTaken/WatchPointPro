@@ -72,19 +72,19 @@ const fromCompany = (company: FromCompany) => ({ fromName: company.name, ...(com
 
 function layout(heading: string, body: string, buttonLabel: string, href: string, company?: FromCompany) {
   const brand = brandOf(company?.brandColor);
-  const button = brand ? `background:${brand.color};color:${brand.ink}` : "background:#6b8a63;color:#fff";
+  const button = brand ? `background:${brand.color};color:${brand.ink}` : "background:#3e5a49;color:#fff";
   const letterhead = company
-    ? `<div style="border-top:4px solid ${brand?.color ?? "#6b8a63"};padding-top:16px;margin-bottom:20px">${
+    ? `<div style="border-top:4px solid ${brand?.color ?? "#3e5a49"};padding-top:16px;margin-bottom:20px">${
         company.logoUrl
           ? `<img src="${esc(company.logoUrl)}" alt="" width="40" height="40" style="border-radius:10px;vertical-align:middle;margin-right:10px">`
           : ""
       }<span style="vertical-align:middle;font-size:16px;font-weight:bold">${esc(company.name)}</span></div>`
     : "";
-  return `<div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#362f27">
+  return `<div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#1d2b36">
   ${letterhead}<h2 style="margin:0 0 12px">${heading}</h2>
   <p style="line-height:1.5">${body}</p>
   <p style="margin:24px 0"><a href="${href}" style="${button};padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:bold">${buttonLabel}</a></p>
-  <p style="font-size:12px;color:#8a7f71">If the button doesn't work, paste this link into your browser:<br>${href}</p>
+  <p style="font-size:12px;color:#5b6670">If the button doesn't work, paste this link into your browser:<br>${href}</p>
 </div>`;
 }
 

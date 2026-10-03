@@ -76,7 +76,7 @@ export default async function HomewatcherHomeDetailPage(
         </div>
       )}
 
-      <h1 className="mt-4 text-2xl font-bold text-ink">{home.nickname}</h1>
+      <h1 className="mt-4 text-[30px] leading-tight sm:text-[34px] text-ink">{home.nickname}</h1>
       <p className="flex items-center gap-1.5 text-ink-muted">
         <MapPin className="h-4 w-4 shrink-0" strokeWidth={2} />
         {home.address}

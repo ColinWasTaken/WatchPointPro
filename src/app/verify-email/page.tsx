@@ -10,7 +10,7 @@ export default async function VerifyEmailPage(props: PageProps<"/verify-email">)
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-6 py-16">
       <div className="w-full max-w-sm rounded-3xl bg-surface p-8 text-center shadow-md">
-        <h1 className="mb-2 text-xl font-bold text-ink">Confirm your email</h1>
+        <h1 className="mb-2 text-[26px] leading-tight text-ink">Confirm your email</h1>
         {valid && value ? (
           <>
             <p className="mb-6 text-sm text-ink-muted">One tap and your account is ready.</p>

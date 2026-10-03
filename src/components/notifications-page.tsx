@@ -20,7 +20,7 @@ export async function NotificationsPage({ settingsHref }: { settingsHref: string
   return (
     <div className="mx-auto max-w-2xl">
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-ink">Notifications</h1>
+        <h1 className="text-[30px] leading-tight sm:text-[34px] text-ink">Notifications</h1>
         {notes.some((n) => !n.readAt) && (
           <form action={markAllNotificationsReadAction}>
             <button type="submit" className="text-sm font-semibold text-accent">

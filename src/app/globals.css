@@ -1,17 +1,20 @@
 @import "tailwindcss";
 
+/* One look for the whole app and the front page: warm paper, white sheets, harbor ink, and a
+   boxwood green. Light only, like the front page. */
 :root {
-  --background: #faf6ef;
-  --surface: #fffdfa;
-  --ink: #362f27;
-  --ink-muted: #8a7f71;
-  --accent: #6b8a63;
-  --accent-strong: #56724f;
-  --accent-soft: #e6ede1;
-  --pending: #b8863f;
-  --pending-soft: #f5ead6;
-  --danger: #b8543f;
-  --border: #ece3d5;
+  color-scheme: light;
+  --background: #f1f1ee;
+  --surface: #ffffff;
+  --ink: #1d2b36;
+  --ink-muted: #5b6670;
+  --accent: #3e5a49;
+  --accent-strong: #2f4638;
+  --accent-soft: #e2e9e3;
+  --pending: #8a6420;
+  --pending-soft: #f3ecdc;
+  --danger: #9a3b2a;
+  --border: #d9dad5;
 }
 
 @theme inline {
@@ -26,36 +29,29 @@
   --color-pending-soft: var(--pending-soft);
   --color-danger: var(--danger);
   --color-border: var(--border);
-  --font-sans: var(--font-nunito);
 
-  /* Public website (light only, independent of the app's dark mode) */
-  --color-paper: #f1f1ee;
-  --color-sheet: #ffffff;
-  --color-harbor: #1d2b36;
-  --color-slate-text: #5b6670;
-  --color-hairline: #d9dad5;
+  /* The front page's names for the same palette */
+  --color-paper: var(--background);
+  --color-sheet: var(--surface);
+  --color-harbor: var(--ink);
+  --color-slate-text: var(--ink-muted);
+  --color-hairline: var(--border);
   --color-mist: #e5e7e2;
-  --color-boxwood: #3e5a49;
-  --color-boxwood-deep: #2f4638;
+  --color-boxwood: var(--accent);
+  --color-boxwood-deep: var(--accent-strong);
+
+  /* Hanken Grotesk for text, Libre Caslon for headings (loaded in the root layout) */
+  --font-sans: var(--font-site-sans);
+  --font-site: var(--font-site-sans);
   --font-display: var(--font-site-display);
   --font-caslon: var(--font-site-serif);
-  --font-site: var(--font-site-sans);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #24211c;
-    --surface: #2d2924;
-    --ink: #f1e9dd;
-    --ink-muted: #ab9f8f;
-    --accent: #8bab81;
-    --accent-strong: #a2bf99;
-    --accent-soft: #3a4136;
-    --pending: #e0ac66;
-    --pending-soft: #453a28;
-    --danger: #e0876f;
-    --border: #3a352d;
-  }
+  /* Quieter shapes: smaller corners, and hairlines where cards had drop shadows */
+  --radius-xl: 0.5rem;
+  --radius-2xl: 0.625rem;
+  --radius-3xl: 0.875rem;
+  --shadow-sm: 0 0 0 1px var(--border);
+  --shadow-md: 0 0 0 1px #c3c7c0, 0 12px 24px -18px rgb(29 43 54 / 0.35);
 }
 
 body {
@@ -64,7 +60,28 @@ body {
   font-family: var(--font-sans), ui-sans-serif, sans-serif;
 }
 
-/* Public website: one orchestrated entrance in the hero, nothing else moves on its own. */
+/* Headings in Libre Caslon, as on the front page: the Display cut for page titles, the Text cut
+   below that. Outside Tailwind's layers on purpose, so they win over weight utilities like
+   font-bold (the Display cut has only one weight). */
+h1 {
+  font-family: var(--font-site-display), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+}
+h2,
+h3 {
+  font-family: var(--font-site-serif), Georgia, serif;
+  font-weight: 400;
+}
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* The front page: one orchestrated entrance, nothing else moves on its own. */
 @keyframes site-rise {
   from { opacity: 0; transform: translateY(14px); }
   to { opacity: 1; transform: none; }
@@ -75,10 +92,6 @@ body {
 }
 .site-rise { animation: site-rise 1s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 .site-reveal { animation: site-reveal 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-html:has(.site) { scroll-behavior: smooth; }
-html:has(.site) body { background: var(--color-paper); }
-.site :focus-visible { outline: 2px solid var(--color-boxwood); outline-offset: 3px; border-radius: 2px; }
 @media (prefers-reduced-motion: reduce) {
   .site-rise, .site-reveal { animation: none; }
-  html:has(.site) { scroll-behavior: auto; }
 }

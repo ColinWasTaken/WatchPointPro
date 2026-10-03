@@ -40,7 +40,7 @@ export function DashboardNav({ variant }: { variant: NavVariant }) {
   }, [pathname]);
 
   return (
-    <nav ref={navRef} className="flex gap-1.5 overflow-x-auto bg-surface px-4 pb-3 shadow-sm">
+    <nav ref={navRef} className="flex gap-1.5 overflow-x-auto border-b border-border bg-surface px-4 pb-3">
       {LINKS[variant].map((l) => (
         <Link
           key={l.href}

@@ -97,7 +97,7 @@ export function AuthForm({
   if (awaitingVerification) {
     return (
       <div className="w-full max-w-sm rounded-3xl bg-surface p-8 text-center shadow-md">
-        <h1 className="mb-2 text-xl font-bold text-ink">Check your email</h1>
+        <h1 className="mb-2 text-[26px] leading-tight text-ink">Check your email</h1>
         <p className="mb-6 text-sm text-ink-muted">
           We sent a confirmation link to <span className="font-semibold text-ink">{email}</span>.
           Tap it to finish setting up your account, then sign in.
@@ -155,7 +155,7 @@ export function AuthForm({
         <p className="mb-4 rounded-2xl bg-accent-soft px-4 py-2.5 text-sm text-accent">{notice}</p>
       )}
 
-      <h1 className="mb-6 text-xl font-bold text-ink">
+      <h1 className="mb-6 text-[26px] leading-tight text-ink">
         {mode === "signup"
           ? `Create your ${ROLE_LABEL[role]} account`
           : "Welcome back"}
