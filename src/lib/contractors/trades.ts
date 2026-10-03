@@ -35,9 +35,29 @@ const ITEM_TRADE: Record<string, string> = {
   pests: "pest",
   electrical: "electrical",
   water: "plumbing",
-  other: "handyman",
 };
+
+// Items a company added itself (or the standard "Other", renamed) have no fixed trade, so it's
+// guessed from the item's name. The first match wins: "Pool leak" is pool repair, "Water heater"
+// is plumbing, "Freezer temperature" is appliance repair.
+const NAME_TRADE: [RegExp, string][] = [
+  [/mold|mildew|flood/i, "water_damage"],
+  [/pool|\bspa\b|hot tub|jacuzzi/i, "pool"],
+  [/plumb|leak|water heater|toilet|faucet|sink|shower|\btub\b|pipe|drain|sewer|septic|softener|\bwell\b/i, "plumbing"],
+  [/generator/i, "generator"],
+  [/appliance|fridge|refrigerator|freezer|wine cooler|dishwasher|washer|dryer|oven|stove|\brange\b|ice maker|microwave/i, "appliance"],
+  [/\bac\b|a\/c|hvac|air condition|thermostat|furnace|heat pump|\bducts?\b|humidi|temperature/i, "hvac"],
+  [/roof|gutter|chimney|skylight/i, "roofing"],
+  [/electric|breaker|outlet|wiring|\blights?\b|lighting|smoke (detector|alarm)|carbon monoxide/i, "electrical"],
+  [/window|shutter|screen|glass/i, "windows"],
+  [/\blocks?\b|lockbox|deadbolt/i, "locksmith"],
+  [/door|gate/i, "doors"],
+  [/pest|termite|rodent|mouse|mice|insect|\bants?\b|\bbugs?\b/i, "pest"],
+  [/lawn|landscap|garden|irrigation|sprinkler|\btrees?\b|yard|\bplants?\b|hedge/i, "landscaping"],
+  [/paint|stucco/i, "painting"],
+];
 
 export const findTrade = (key: string | null | undefined) => TRADES.find((t) => t.key === key);
 
-export const tradeForItem = (itemKey: string): Trade => findTrade(ITEM_TRADE[itemKey]) ?? TRADES[TRADES.length - 1];
+export const tradeForItem = (itemKey: string, name?: string | null): Trade =>
+  findTrade(ITEM_TRADE[itemKey] ?? NAME_TRADE.find(([pattern]) => name && pattern.test(name))?.[1]) ?? TRADES[TRADES.length - 1];

@@ -49,8 +49,9 @@ export function OutcomeBadge({ items }: { items: { status: string | null }[] }) 
   );
 }
 
+// "74°F" and "48%", but "3 ppm".
 const reading = (value: number | null, unit: string | null) =>
-  value === null || !unit ? null : `${Number.isInteger(value) ? value : value.toFixed(1)}${unit}`;
+  value === null || !unit ? null : `${Number.isInteger(value) ? value : value.toFixed(1)}${/^[a-z]/i.test(unit) ? " " : ""}${unit}`;
 
 // A submitted home check as homeowners and staff read it: what's wrong first, then what's fine.
 // Media URLs are signed by the caller after its own permission check.
@@ -69,7 +70,7 @@ export function InspectionReport({
   // The issue each problem item opened or updated, by checklist key.
   issueLinks?: Map<string, { href: string; status: string }>;
   // For homeowners: where to find professionals for a problem item.
-  proLinkFor?: (itemKey: string) => { href: string; label: string } | null;
+  proLinkFor?: (itemKey: string, itemName: string) => { href: string; label: string } | null;
 }) {
   const outcome = inspectionOutcome(inspection.items);
   const when = (inspection.submittedAt ?? inspection.startedAt).toISOString();
@@ -157,7 +158,7 @@ export function InspectionReport({
                     ) : null;
                   })()}
                   {(() => {
-                    const pros = status !== "good" ? proLinkFor?.(item.key) : null;
+                    const pros = status !== "good" ? proLinkFor?.(item.key, item.label) : null;
                     return pros ? (
                       <Link href={pros.href} className="ml-3 mt-1.5 inline-block text-xs font-semibold text-accent">
                         {pros.label} →

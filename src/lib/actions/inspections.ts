@@ -7,7 +7,8 @@ import { prisma } from "@/lib/prisma";
 import { findProperty, inspectionScope, isAdmin, requireCompany, type CompanyContext } from "@/lib/authz";
 import { appUrl, emails } from "@/lib/email";
 import { notify } from "@/lib/notify";
-import { DEFAULT_INSPECTION_ITEMS, inspectionOutcome, isItemStatus } from "@/lib/inspection-template";
+import { inspectionOutcome, isItemStatus } from "@/lib/inspection-template";
+import { companyChecklist } from "@/lib/checklist";
 import { recordIssues } from "@/lib/issues";
 import {
   MEDIA_LIMITS,
@@ -41,13 +42,14 @@ export async function startInspectionAction(homeId: string) {
   const open = await prisma.inspection.findFirst({ where: { homeId: home.id, status: "draft" }, orderBy: { startedAt: "asc" } });
   if (open) redirect(`${hw}/inspections/${open.id}`);
 
+  const { items } = await companyChecklist(ctx.company.id);
   const created = await prisma.inspection.create({
     data: {
       companyId: ctx.company.id,
       homeId: home.id,
       inspectorId: ctx.userId,
       items: {
-        create: DEFAULT_INSPECTION_ITEMS.map((t, position) => ({
+        create: items.map((t, position) => ({
           key: t.key,
           label: t.label,
           readingUnit: t.readingUnit ?? null,

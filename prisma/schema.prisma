@@ -184,6 +184,7 @@ model Company {
   invitations Invitation[]
   inspections Inspection[]
   issues      Issue[]
+  checklist   ChecklistTemplateItem[]
 }
 
 // Staff of a company. One company per user for now. role: admin | employee
@@ -287,6 +288,21 @@ model InspectionItem {
   issues Issue[]
 
   @@unique([inspectionId, key])
+}
+
+// A company's own home check checklist: new checks start with these items, in this order.
+// Companies that haven't made one use the standard list (src/lib/inspection-template.ts).
+model ChecklistTemplateItem {
+  id          String  @id @default(cuid())
+  companyId   String
+  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  key         String // stays the same when the item is renamed, so issues and trades follow it
+  label       String
+  readingUnit String? // items with a unit take a reading, e.g. "°F"
+  position    Int
+
+  @@unique([companyId, key])
+  @@index([companyId, position])
 }
 
 // A photo or video in the private media bucket. Only the object path is stored; viewers get

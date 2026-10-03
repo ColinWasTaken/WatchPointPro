@@ -1,5 +1,6 @@
-// The home-check checklist. Items are copied onto each inspection when it starts, so changing this
-// list later doesn't alter past reports.
+// The standard home-check checklist, for companies that haven't made their own (src/lib/checklist.ts).
+// Items are copied onto each inspection when it starts, so changing a list later doesn't alter past
+// reports. Keys never change: issues and contractor trades are matched by them.
 
 export type TemplateItem = { key: string; label: string; readingUnit?: string };
 

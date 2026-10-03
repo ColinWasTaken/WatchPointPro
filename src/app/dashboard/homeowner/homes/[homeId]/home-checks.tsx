@@ -71,10 +71,10 @@ export async function HomeChecks({ homeId, companyName }: { homeId: string; comp
   const base = `/dashboard/homeowner/homes/${homeId}/inspections`;
   const issueLinks = await issueLinksFor(latest, (id) => `/dashboard/homeowner/homes/${homeId}/issues/${id}`);
   const proLinkFor = contractorSearchAvailable()
-    ? (itemKey: string) => ({
-        href: `/dashboard/homeowner/homes/${homeId}/pros?trade=${tradeForItem(itemKey).key}`,
-        label: `Find ${tradeForItem(itemKey).plural} near my property`,
-      })
+    ? (itemKey: string, itemName: string) => {
+        const trade = tradeForItem(itemKey, itemName);
+        return { href: `/dashboard/homeowner/homes/${homeId}/pros?trade=${trade.key}`, label: `Find ${trade.plural} near my property` };
+      }
     : undefined;
 
   return (

@@ -44,8 +44,8 @@ export default async function HomeownerIssuePage(props: PageProps<"/dashboard/ho
           findPros={
             contractorSearchAvailable()
               ? {
-                  href: `/dashboard/homeowner/homes/${homeId}/pros?trade=${tradeForItem(issue.itemKey).key}&issue=${issue.id}`,
-                  label: `Find ${tradeForItem(issue.itemKey).plural} near my property`,
+                  href: `/dashboard/homeowner/homes/${homeId}/pros?trade=${tradeForItem(issue.itemKey, issue.title).key}&issue=${issue.id}`,
+                  label: `Find ${tradeForItem(issue.itemKey, issue.title).plural} near my property`,
                 }
               : undefined
           }

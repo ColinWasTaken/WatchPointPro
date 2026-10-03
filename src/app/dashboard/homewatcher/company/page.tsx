@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Building2 } from "lucide-react";
+import { Building2, ListChecks } from "lucide-react";
 import { auth } from "@/auth";
 import { getCompanyContext } from "@/lib/authz";
+import { companyChecklist } from "@/lib/checklist";
 import { createCompanyAction, updateCompanyAction } from "@/lib/actions/company";
 import { CompanyForm } from "@/components/company-forms";
 
@@ -29,6 +31,7 @@ export default async function CompanyPage() {
   }
 
   const { company, role } = ctx;
+  const checklist = await companyChecklist(company.id);
   return (
     <div className="mx-auto max-w-lg">
       <h1 className="text-2xl font-bold text-ink">{company.name}</h1>
@@ -55,6 +58,21 @@ export default async function CompanyPage() {
           </dl>
         )}
       </div>
+      <Link
+        href="/dashboard/homewatcher/company/checklist"
+        className="mt-6 flex items-center gap-4 rounded-3xl bg-surface p-6 shadow-sm transition hover:shadow-md"
+      >
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-accent-soft text-accent">
+          <ListChecks className="h-5 w-5" strokeWidth={2} />
+        </span>
+        <span className="min-w-0">
+          <span className="block font-semibold text-ink">Home check checklist</span>
+          <span className="block text-sm text-ink-muted">
+            {checklist.custom ? "Your own" : "The standard"} list of {checklist.items.length} items.{" "}
+            {role === "admin" ? "Add, rename, or reorder items." : "See what every check covers."}
+          </span>
+        </span>
+      </Link>
     </div>
   );
 }

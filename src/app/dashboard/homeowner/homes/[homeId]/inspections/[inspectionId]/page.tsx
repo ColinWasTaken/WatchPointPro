@@ -34,10 +34,10 @@ export default async function HomeownerInspectionPage(
   const urls = await signMediaUrls(inspection.items.flatMap((i) => i.media.map((m) => m.path)));
   const issueLinks = await issueLinksFor(inspection, (id) => `/dashboard/homeowner/homes/${homeId}/issues/${id}`);
   const proLinkFor = contractorSearchAvailable()
-    ? (itemKey: string) => ({
-        href: `/dashboard/homeowner/homes/${homeId}/pros?trade=${tradeForItem(itemKey).key}`,
-        label: `Find ${tradeForItem(itemKey).plural} near my property`,
-      })
+    ? (itemKey: string, itemName: string) => {
+        const trade = tradeForItem(itemKey, itemName);
+        return { href: `/dashboard/homeowner/homes/${homeId}/pros?trade=${trade.key}`, label: `Find ${trade.plural} near my property` };
+      }
     : undefined;
 
   return (

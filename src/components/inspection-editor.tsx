@@ -219,7 +219,7 @@ function ItemCard({
               onChange={(e) => onEdit("reading", e.target.value)}
               onBlur={() => onLeaveField("reading")}
               onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-              placeholder={item.readingUnit === "%" ? "48" : "74"}
+              placeholder={item.readingUnit === "%" ? "48" : item.readingUnit === "°F" ? "74" : undefined}
               className="w-24 rounded-2xl border border-border bg-background px-3 py-2.5 text-base text-ink outline-none focus:border-accent"
             />
             <span className="text-ink-muted">{item.readingUnit}</span>
