@@ -8,6 +8,7 @@ import { findProperty, inspectionScope, isAdmin, requireCompany, type CompanyCon
 import { appUrl, emails } from "@/lib/email";
 import { notify } from "@/lib/notify";
 import { DEFAULT_INSPECTION_ITEMS, inspectionOutcome, isItemStatus } from "@/lib/inspection-template";
+import { recordIssues } from "@/lib/issues";
 import {
   MEDIA_LIMITS,
   createMediaUpload,
@@ -182,10 +183,12 @@ export async function submitInspectionAction(inspectionId: string, summary: stri
         summary: String(summary).trim().slice(0, 4000) || null,
       },
     });
-    // Anything left unmarked is reported as not checked.
+    if (done.count !== 1) return false;
+    // Anything left unmarked is reported as not checked; problems become issues to track.
     await tx.inspectionItem.updateMany({ where: { inspectionId: draft.id, status: null }, data: { status: "not_checked" } });
-    return done.count === 1;
-  });
+    await recordIssues(tx, draft, ctx.userId);
+    return true;
+  }, { timeout: 20000 });
   if (!submitted) return { error: LOCKED };
 
   const home = draft.home;
@@ -199,7 +202,7 @@ export async function submitInspectionAction(inspectionId: string, summary: stri
   );
 
   revalidatePath(`${hw}/properties/${home.id}`);
-  revalidatePath(hw);
+  revalidatePath(hw, "layout");
   revalidatePath("/dashboard/homeowner", "layout");
   redirect(`${hw}/inspections/${draft.id}`);
 }

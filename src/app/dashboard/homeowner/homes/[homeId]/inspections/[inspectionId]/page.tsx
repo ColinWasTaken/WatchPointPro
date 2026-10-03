@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { signMediaUrls } from "@/lib/media";
+import { issueLinksFor } from "@/lib/issue-links";
 import { BackLink } from "@/components/back-link";
 import { InspectionReport } from "@/components/inspection-report";
 
@@ -30,12 +31,13 @@ export default async function HomeownerInspectionPage(
     data: { readAt: new Date() },
   });
   const urls = await signMediaUrls(inspection.items.flatMap((i) => i.media.map((m) => m.path)));
+  const issueLinks = await issueLinksFor(inspection, (id) => `/dashboard/homeowner/homes/${homeId}/issues/${id}`);
 
   return (
     <div className="mx-auto max-w-2xl">
       <BackLink href={`/dashboard/homeowner/homes/${homeId}`} label={`Back to ${inspection.home.nickname}`} />
       <div className="mt-4">
-        <InspectionReport inspection={inspection} mediaUrls={urls} branded />
+        <InspectionReport inspection={inspection} mediaUrls={urls} branded issueLinks={issueLinks} />
       </div>
     </div>
   );

@@ -17,6 +17,7 @@ export default async function HomeownerDashboardPage(props: PageProps<"/dashboar
     where: { ownerId: session.user.id },
     include: {
       company: { select: { name: true } },
+      _count: { select: { issues: { where: { status: { not: "resolved" } } } } },
       inspections: {
         where: { status: "submitted" },
         orderBy: { submittedAt: "desc" },
@@ -113,6 +114,11 @@ export default async function HomeownerDashboardPage(props: PageProps<"/dashboar
                     </>
                   ) : (
                     "Not checked yet"
+                  )}
+                  {home._count.issues > 0 && (
+                    <span className="rounded-full bg-danger/10 px-2.5 py-0.5 text-[11px] font-semibold text-danger">
+                      {home._count.issues} open {home._count.issues === 1 ? "issue" : "issues"}
+                    </span>
                   )}
                 </p>
               ) : (

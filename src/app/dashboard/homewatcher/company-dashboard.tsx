@@ -1,8 +1,9 @@
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { CalendarDays, Check, CircleCheckBig, ClipboardCheck, Home as HomeIcon, TriangleAlert } from "lucide-react";
+import { CalendarDays, Check, CircleCheckBig, ClipboardCheck, Home as HomeIcon, TriangleAlert, Wrench } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { clientScope, inspectionScope, isAdmin, propertyScope, type CompanyContext } from "@/lib/authz";
+import { clientScope, inspectionScope, isAdmin, issueScope, propertyScope, type CompanyContext } from "@/lib/authz";
+import { UNRESOLVED } from "@/lib/issues";
 import { clientName } from "@/lib/fields";
 import { todayBounds } from "@/lib/time";
 import { LocalTime } from "@/components/local-time";
@@ -60,7 +61,7 @@ export async function CompanyDashboard({ ctx, joined }: { ctx: CompanyContext; j
   const { start, end } = todayBounds(user?.timezone);
   const weekEnd = new Date(end.getTime() + 7 * DAY_MS);
 
-  const [properties, clients, todaysChecks, upcoming, teamSize, unassigned, completedToday, inProgress] = await Promise.all([
+  const [properties, clients, todaysChecks, upcoming, teamSize, unassigned, completedToday, inProgress, openIssues] = await Promise.all([
     prisma.home.count({ where: scope }),
     prisma.client.count({ where: clientScope(ctx) }),
     prisma.visit.findMany({
@@ -80,6 +81,7 @@ export async function CompanyDashboard({ ctx, joined }: { ctx: CompanyContext; j
       orderBy: { startedAt: "desc" },
       include: { home: true, items: { select: { status: true } } },
     }),
+    prisma.issue.count({ where: { ...issueScope(ctx), status: UNRESOLVED } }),
   ]);
   const checkedToday = new Set(completedToday.map((i) => i.homeId));
 
@@ -95,10 +97,11 @@ export async function CompanyDashboard({ ctx, joined }: { ctx: CompanyContext; j
         </p>
       )}
 
-      <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <Stat href={`${hw}/properties`} label={admin ? "Properties" : "Your properties"} value={properties} icon={HomeIcon} />
         <Stat href="#today" label="Checks today" value={todaysChecks.length} icon={ClipboardCheck} />
         <Stat href={`${hw}/inspections`} label="Completed today" value={completedToday.length} icon={CircleCheckBig} />
+        <Stat href={`${hw}/issues`} label="Open issues" value={openIssues} icon={Wrench} />
         <Stat href={`${hw}/schedule`} label="Next 7 days" value={upcoming} icon={CalendarDays} />
       </div>
 

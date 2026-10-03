@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { inspectionScope, isAdmin, requireCompany } from "@/lib/authz";
 import { signMediaUrls } from "@/lib/media";
+import { issueLinksFor } from "@/lib/issue-links";
 import { isItemStatus } from "@/lib/inspection-template";
 import { BackLink } from "@/components/back-link";
 import { LocalTime } from "@/components/local-time";
@@ -28,11 +29,12 @@ export default async function InspectionPage(props: PageProps<"/dashboard/homewa
   );
 
   if (inspection.status === "submitted") {
+    const issueLinks = await issueLinksFor(inspection, (id) => `/dashboard/homewatcher/issues/${id}`);
     return (
       <div className="mx-auto max-w-2xl">
         {back}
         <div className="mt-4">
-          <InspectionReport inspection={inspection} mediaUrls={urls} />
+          <InspectionReport inspection={inspection} mediaUrls={urls} issueLinks={issueLinks} />
         </div>
       </div>
     );

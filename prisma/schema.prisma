@@ -27,6 +27,7 @@ model User {
   invitationsSent      Invitation[]     @relation("InvitationsSent")
   inspectionsPerformed Inspection[]     @relation("InspectionsPerformed")
   notifications        Notification[]
+  issueEvents          IssueEvent[]
   assignments          HomeAssignment[]
   reports              Report[]
   sentMessages         Message[]        @relation("MessageSender")
@@ -66,6 +67,7 @@ model Home {
   checklistItems ChecklistItem[]
   reports        Report[]
   inspections    Inspection[]
+  issues         Issue[]
   messages       Message[]
 
   @@index([companyId])
@@ -178,6 +180,7 @@ model Company {
   homes       Home[]
   invitations Invitation[]
   inspections Inspection[]
+  issues      Issue[]
 }
 
 // Staff of a company. One company per user for now. role: admin | employee
@@ -254,8 +257,10 @@ model Inspection {
   startedAt   DateTime  @default(now())
   submittedAt DateTime?
 
-  items InspectionItem[]
-  media InspectionMedia[]
+  items       InspectionItem[]
+  media       InspectionMedia[]
+  issues      Issue[]
+  issueEvents IssueEvent[]
 
   @@index([homeId, status])
   @@index([companyId, submittedAt])
@@ -275,7 +280,8 @@ model InspectionItem {
   readingUnit  String? // set for items that take a reading, e.g. "°F"
   reading      Float?
 
-  media InspectionMedia[]
+  media  InspectionMedia[]
+  issues Issue[]
 
   @@unique([inspectionId, key])
 }
@@ -313,4 +319,49 @@ model Notification {
 
   @@index([userId, readAt])
   @@index([userId, createdAt])
+}
+
+// A problem found during a home check, tracked until it's resolved. Created automatically when a
+// check is submitted with an item marked Needs attention or Repair needed; if the same problem is
+// still open from an earlier check, that issue is updated instead of duplicated.
+model Issue {
+  id           String          @id @default(cuid())
+  companyId    String
+  company      Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  homeId       String
+  home         Home            @relation(fields: [homeId], references: [id], onDelete: Cascade)
+  inspectionId String? // the check that first reported it
+  inspection   Inspection?     @relation(fields: [inspectionId], references: [id], onDelete: SetNull)
+  itemId       String?
+  item         InspectionItem? @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  itemKey      String // checklist key, to recognize the same problem in later checks
+  title        String
+  description  String?
+  severity     String // attention | repair
+  status       String          @default("open") // open | repair_scheduled | in_progress | resolved
+  resolvedAt   DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  events IssueEvent[]
+
+  @@index([companyId, status])
+  @@index([homeId, status])
+}
+
+// An issue's timeline: when it was reported, status changes, notes, and later sightings.
+model IssueEvent {
+  id           String      @id @default(cuid())
+  issueId      String
+  issue        Issue       @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  authorId     String?
+  author       User?       @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  kind         String // reported | seen_again | status | note
+  status       String? // the new status, for kind "status"
+  note         String?
+  inspectionId String? // for reported / seen_again
+  inspection   Inspection? @relation(fields: [inspectionId], references: [id], onDelete: SetNull)
+  createdAt    DateTime    @default(now())
+
+  @@index([issueId, createdAt])
 }

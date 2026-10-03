@@ -131,6 +131,10 @@ export const emails = {
     subject: `Your home check at ${oneLine(place)} has been completed`,
     html: layout("Home check completed", `${esc(company)} completed a home check at <b>${esc(place)}</b>. ${esc(outcome)}`, "View report", link),
   }),
+  issueResolved: (company: string, issue: string, place: string, link: string) => ({
+    subject: `Resolved: ${oneLine(issue)} at ${oneLine(place)}`,
+    html: layout("Issue resolved", `${esc(company)} marked <b>${esc(issue)}</b> at ${esc(place)} as resolved.`, "View issue", link),
+  }),
   employeeInvite: (company: string, inviter: string, link: string, days: number) => ({
     subject: `${oneLine(inviter)} invited you to join ${oneLine(company)} on WatchPointPro`,
     html: layout(

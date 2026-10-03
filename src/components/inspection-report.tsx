@@ -1,8 +1,10 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { Building2, Check, Minus, TriangleAlert, Wrench } from "lucide-react";
 import { LocalTime } from "./local-time";
 import { STATUS_LABEL, inspectionOutcome, isItemStatus, type ItemStatus, type OutcomeLevel } from "@/lib/inspection-template";
+import { ISSUE_STATUS_LABEL, isIssueStatus } from "@/lib/issues";
 
 type ReportMedia = { id: string; kind: string; path: string };
 type ReportSource = {
@@ -14,6 +16,7 @@ type ReportSource = {
   home: { nickname: string; address: string };
   items: {
     id: string;
+    key: string;
     label: string;
     status: string | null;
     note: string | null;
@@ -56,11 +59,14 @@ export function InspectionReport({
   mediaUrls,
   branded = false,
   showPlace = true,
+  issueLinks,
 }: {
   inspection: ReportSource;
   mediaUrls: Map<string, string>;
   branded?: boolean;
   showPlace?: boolean;
+  // The issue each problem item opened or updated, by checklist key.
+  issueLinks?: Map<string, { href: string; status: string }>;
 }) {
   const outcome = inspectionOutcome(inspection.items);
   const when = (inspection.submittedAt ?? inspection.startedAt).toISOString();
@@ -139,6 +145,14 @@ export function InspectionReport({
                     {value && <span className="ml-2 font-bold text-ink">{value}</span>}
                   </p>
                   {item.note && <p className="mt-1 whitespace-pre-wrap text-sm text-ink">{item.note}</p>}
+                  {(() => {
+                    const issue = issueLinks?.get(item.key);
+                    return issue && isIssueStatus(issue.status) ? (
+                      <Link href={issue.href} className="mt-1.5 inline-block text-xs font-semibold text-accent">
+                        Issue · {ISSUE_STATUS_LABEL[issue.status]} →
+                      </Link>
+                    ) : null;
+                  })()}
                 </div>
               </div>
               {photos.length > 0 && (
