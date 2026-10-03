@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Building2, Home as HomeIcon, MapPin, Plus, Users } from "lucide-react";
+import { Home as HomeIcon, MapPin, Plus, Users } from "lucide-react";
+import { CompanyMark } from "@/components/company-mark";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { HomeActivity } from "@/components/home-activity";
@@ -16,7 +17,7 @@ export default async function HomeownerDashboardPage(props: PageProps<"/dashboar
   const homes = await prisma.home.findMany({
     where: { ownerId: session.user.id },
     include: {
-      company: { select: { name: true } },
+      company: { select: { name: true, logoUrl: true, brandColor: true } },
       _count: { select: { issues: { where: { status: { not: "resolved" } } } } },
       inspections: {
         where: { status: "submitted" },
@@ -93,8 +94,8 @@ export default async function HomeownerDashboardPage(props: PageProps<"/dashboar
                 {home.address}
               </p>
               {home.company ? (
-                <p className="mt-2 flex items-center gap-1 text-xs font-semibold text-accent">
-                  <Building2 className="h-3.5 w-3.5" strokeWidth={2} />
+                <p className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-accent">
+                  <CompanyMark company={home.company} size="xs" />
                   Managed by {home.company.name}
                 </p>
               ) : (

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { Building2 } from "lucide-react";
+import { CompanyMark } from "@/components/company-mark";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { findOpenInvitation, isEmptySoloCompany } from "@/lib/invitations";
@@ -127,19 +126,7 @@ export default async function InvitePage(props: PageProps<"/invite">) {
   return (
     <Card>
       <div className="mb-6 flex flex-col items-center text-center">
-        {company.logoUrl ? (
-          <Image
-            src={company.logoUrl}
-            alt={`${company.name} logo`}
-            width={64}
-            height={64}
-            className="h-16 w-16 rounded-2xl object-cover"
-          />
-        ) : (
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-soft text-accent">
-            <Building2 className="h-7 w-7" strokeWidth={1.75} />
-          </div>
-        )}
+        <CompanyMark company={company} size="lg" />
         {invitation.kind === "client" ? (
           <>
             <h1 className="mt-3 text-xl font-bold text-ink">Hi {invitation.client.firstName}, you&apos;re invited</h1>

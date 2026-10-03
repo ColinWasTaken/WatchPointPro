@@ -3,6 +3,7 @@
 import { useActionState, type ReactNode } from "react";
 import { Camera } from "lucide-react";
 import type { ActionState } from "@/lib/actions/company";
+import { BrandColorField } from "./brand-color-field";
 
 type Action = (prev: ActionState, formData: FormData) => Promise<ActionState>;
 
@@ -96,17 +97,7 @@ export function CompanyForm({
         Company address
         <input name="address" defaultValue={company?.address ?? ""} className={inputClass} />
       </label>
-      <label className={labelClass}>
-        Brand color
-        <input
-          name="brandColor"
-          type="text"
-          defaultValue={company?.brandColor ?? ""}
-          placeholder="#6b8a63"
-          pattern="#[0-9a-fA-F]{6}"
-          className={inputClass}
-        />
-      </label>
+      <BrandColorField defaultValue={company?.brandColor ?? ""} companyName={company?.name ?? "Your company"} logoUrl={company?.logoUrl ?? null} />
       {company?.logoUrl && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={company.logoUrl} alt="Company logo" className="h-16 w-16 rounded-2xl object-cover" />

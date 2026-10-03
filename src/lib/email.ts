@@ -1,3 +1,5 @@
+import { brandOf } from "@/lib/brand";
+
 const RESEND_URL = process.env.RESEND_API_URL ?? "https://api.resend.com/emails";
 
 export function isEmailConfigured() {
@@ -27,13 +29,18 @@ export async function sendEmail({
   subject,
   html,
   replyTo,
+  fromName,
 }: {
   to: string;
   subject: string;
   html: string;
   replyTo?: string;
+  fromName?: string; // shown as "<fromName> via WatchPointPro"
 }) {
   if (!isEmailConfigured()) return false;
+  const from = process.env.EMAIL_FROM ?? "WatchPointPro <onboarding@resend.dev>";
+  const address = /<([^>]+)>/.exec(from)?.[1] ?? from.trim();
+  const name = fromName?.replace(/["\\<>]/g, "").replace(/\s+/g, " ").trim().slice(0, 60); // no line breaks or quotes in a header
 
   const res = await fetch(RESEND_URL, {
     method: "POST",
@@ -42,7 +49,7 @@ export async function sendEmail({
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: process.env.EMAIL_FROM ?? "WatchPointPro <onboarding@resend.dev>",
+      from: name ? `"${name} via WatchPointPro" <${address}>` : from,
       to,
       subject,
       html,
@@ -58,11 +65,25 @@ export async function sendEmail({
   return true;
 }
 
-function layout(heading: string, body: string, buttonLabel: string, href: string) {
+// A company writing to its homeowners: shown with its color, logo, and name, and replies go to it.
+type FromCompany = { name: string; brandColor: string | null; logoUrl: string | null; email: string | null };
+
+const fromCompany = (company: FromCompany) => ({ fromName: company.name, ...(company.email ? { replyTo: company.email } : {}) });
+
+function layout(heading: string, body: string, buttonLabel: string, href: string, company?: FromCompany) {
+  const brand = brandOf(company?.brandColor);
+  const button = brand ? `background:${brand.color};color:${brand.ink}` : "background:#6b8a63;color:#fff";
+  const letterhead = company
+    ? `<div style="border-top:4px solid ${brand?.color ?? "#6b8a63"};padding-top:16px;margin-bottom:20px">${
+        company.logoUrl
+          ? `<img src="${esc(company.logoUrl)}" alt="" width="40" height="40" style="border-radius:10px;vertical-align:middle;margin-right:10px">`
+          : ""
+      }<span style="vertical-align:middle;font-size:16px;font-weight:bold">${esc(company.name)}</span></div>`
+    : "";
   return `<div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;color:#362f27">
-  <h2 style="margin:0 0 12px">${heading}</h2>
+  ${letterhead}<h2 style="margin:0 0 12px">${heading}</h2>
   <p style="line-height:1.5">${body}</p>
-  <p style="margin:24px 0"><a href="${href}" style="background:#6b8a63;color:#fff;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:bold">${buttonLabel}</a></p>
+  <p style="margin:24px 0"><a href="${href}" style="${button};padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:bold">${buttonLabel}</a></p>
   <p style="font-size:12px;color:#8a7f71">If the button doesn't work, paste this link into your browser:<br>${href}</p>
 </div>`;
 }
@@ -117,22 +138,25 @@ export const emails = {
     subject: `${ownerName} invited you to watch ${homeName}`,
     html: layout("You're invited", `${esc(ownerName)} invited you to be a homewatcher for <b>${esc(homeName)}</b> on WatchPointPro. Create a homewatcher account with this email address and the invitation will be waiting for you.`, "Get started", link),
   }),
-  clientInvite: (company: string, firstName: string, link: string, days: number) => ({
-    subject: `${oneLine(company)} invited you to WatchPointPro`,
+  clientInvite: (company: FromCompany, firstName: string, link: string, days: number) => ({
+    subject: `${oneLine(company.name)} invited you to WatchPointPro`,
     html: layout(
-      `${esc(company)} invited you`,
-      `Hi ${esc(firstName)}, ${esc(company)} uses WatchPointPro to provide digital home-check reports. Create your account to view inspections, photos, videos, and property updates.<br><br>This invitation expires in ${days} days.`,
+      `${esc(company.name)} invited you`,
+      `Hi ${esc(firstName)}, ${esc(company.name)} uses WatchPointPro to provide digital home-check reports. Create your account to view inspections, photos, videos, and property updates.<br><br>This invitation expires in ${days} days.`,
       "Accept invitation",
       link,
+      company,
     ),
+    ...fromCompany(company),
   }),
   clientJoined: (client: string, link: string) => ({
     subject: `${oneLine(client)} accepted your invitation`,
     html: layout("Invitation accepted", `<b>${esc(client)}</b> created their WatchPointPro account and can now see their properties.`, "View client", link),
   }),
-  inspectionCompleted: (company: string, place: string, outcome: string, link: string) => ({
+  inspectionCompleted: (company: FromCompany, place: string, outcome: string, link: string) => ({
     subject: `Your home check at ${oneLine(place)} has been completed`,
-    html: layout("Home check completed", `${esc(company)} completed a home check at <b>${esc(place)}</b>. ${esc(outcome)}`, "View report", link),
+    html: layout("Home check completed", `${esc(company.name)} completed a home check at <b>${esc(place)}</b>. ${esc(outcome)}`, "View report", link, company),
+    ...fromCompany(company),
   }),
   newInquiry: (i: { name: string; email: string; phone: string | null; location: string | null; away: string | null; plan: string | null; message: string | null }) => ({
     subject: `Consultation request from ${oneLine(i.name)}`,
@@ -153,9 +177,10 @@ export const emails = {
       `mailto:${encodeURIComponent(i.email)}`,
     ),
   }),
-  issueResolved: (company: string, issue: string, place: string, link: string) => ({
+  issueResolved: (company: FromCompany, issue: string, place: string, link: string) => ({
     subject: `Resolved: ${oneLine(issue)} at ${oneLine(place)}`,
-    html: layout("Issue resolved", `${esc(company)} marked <b>${esc(issue)}</b> at ${esc(place)} as resolved.`, "View issue", link),
+    html: layout("Issue resolved", `${esc(company.name)} marked <b>${esc(issue)}</b> at ${esc(place)} as resolved.`, "View issue", link, company),
+    ...fromCompany(company),
   }),
   employeeInvite: (company: string, inviter: string, link: string, days: number) => ({
     subject: `${oneLine(inviter)} invited you to join ${oneLine(company)} on WatchPointPro`,

@@ -1,7 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { Building2, Check, Minus, TriangleAlert, Wrench } from "lucide-react";
+import { Check, Minus, TriangleAlert, Wrench } from "lucide-react";
+import { brandOf } from "@/lib/brand";
+import { CompanyMark } from "./company-mark";
 import { LocalTime } from "./local-time";
 import { STATUS_LABEL, inspectionOutcome, isItemStatus, type ItemStatus, type OutcomeLevel } from "@/lib/inspection-template";
 import { ISSUE_STATUS_LABEL, isIssueStatus } from "@/lib/issues";
@@ -12,7 +13,7 @@ type ReportSource = {
   startedAt: Date;
   summary: string | null;
   inspector: { name: string | null; email: string } | null;
-  company: { name: string; logoUrl: string | null };
+  company: { name: string; logoUrl: string | null; brandColor?: string | null };
   home: { nickname: string; address: string };
   items: {
     id: string;
@@ -77,27 +78,20 @@ export function InspectionReport({
   const marked = inspection.items.filter((i) => isItemStatus(i.status) && i.status !== "not_checked");
   const ordered = ORDER.flatMap((status) => marked.filter((i) => i.status === status));
   const notChecked = inspection.items.filter((i) => !i.status || i.status === "not_checked");
+  const brand = brandOf(inspection.company.brandColor);
 
   return (
     <article>
       {branded && (
-        <header className="mb-5 flex items-center gap-3">
-          {inspection.company.logoUrl ? (
-            <Image
-              src={inspection.company.logoUrl}
-              alt={`${inspection.company.name} logo`}
-              width={44}
-              height={44}
-              className="h-11 w-11 rounded-2xl object-cover"
-            />
-          ) : (
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-accent-soft text-accent">
-              <Building2 className="h-5 w-5" strokeWidth={1.75} />
-            </span>
-          )}
-          <div>
-            <p className="font-bold text-ink">{inspection.company.name}</p>
-            <p className="text-xs text-ink-muted">Powered by WatchPointPro</p>
+        // The company's letterhead: its color across the top, then its logo (or initials) and name.
+        <header className="mb-5">
+          {brand && <div aria-hidden className="mb-4 h-1.5 rounded-full" style={{ backgroundColor: brand.color }} />}
+          <div className="flex items-center gap-3">
+            <CompanyMark company={inspection.company} />
+            <div>
+              <p className="font-bold text-ink">{inspection.company.name}</p>
+              <p className="text-xs text-ink-muted">Powered by WatchPointPro</p>
+            </div>
           </div>
         </header>
       )}

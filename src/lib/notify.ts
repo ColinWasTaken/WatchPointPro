@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { sendPush } from "@/lib/push";
 
-type Mail = { subject: string; html: string };
+type Mail = { subject: string; html: string; replyTo?: string; fromName?: string };
 type Note = { type: string; title: string; body?: string; link: string };
 // Either may depend on the recipient's timezone (e.g. to show a visit time in their local time).
 type ForRecipient<T> = T | ((timezone: string | null) => T);

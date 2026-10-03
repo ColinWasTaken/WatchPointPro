@@ -71,7 +71,7 @@ export async function updateIssueAction(
     await notify(
       issue.home.ownerId,
       { type: "issue_updated", title, body, link },
-      changed && status === "resolved" ? emails.issueResolved(issue.company.name, issue.title, place, `${appUrl()}${link}`) : undefined,
+      changed && status === "resolved" ? emails.issueResolved(issue.company, issue.title, place, `${appUrl()}${link}`) : undefined,
     );
   } else {
     const admins = await prisma.companyMember.findMany({ where: { companyId: issue.companyId, role: "admin" }, select: { userId: true } });

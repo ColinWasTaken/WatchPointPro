@@ -200,7 +200,7 @@ export async function submitInspectionAction(inspectionId: string, summary: stri
   await notify(
     home.ownerId,
     { type: "inspection_submitted", title: `Your home check at ${place} has been completed`, body: outcome.sentence, link },
-    emails.inspectionCompleted(ctx.company.name, place, outcome.sentence, `${appUrl()}${link}`),
+    emails.inspectionCompleted(ctx.company, place, outcome.sentence, `${appUrl()}${link}`),
   );
 
   revalidatePath(`${hw}/properties/${home.id}`);

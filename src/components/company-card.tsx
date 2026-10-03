@@ -1,9 +1,11 @@
-import Image from "next/image";
-import { Building2, Globe, Mail, Phone } from "lucide-react";
+import { Globe, Mail, Phone } from "lucide-react";
+import { brandOf } from "@/lib/brand";
+import { CompanyMark } from "./company-mark";
 
 type Company = {
   name: string;
   logoUrl: string | null;
+  brandColor: string | null;
   phone: string | null;
   email: string | null;
   website: string | null;
@@ -12,21 +14,13 @@ type Company = {
 // The home-watch company that manages a homeowner's property, and how to reach them.
 export function CompanyCard({ company }: { company: Company }) {
   const linkClass = "flex items-center gap-1.5 hover:text-accent";
+  const brand = brandOf(company.brandColor);
   return (
-    <div className="mt-4 flex items-start gap-3 rounded-2xl bg-surface p-4 shadow-sm">
-      {company.logoUrl ? (
-        <Image
-          src={company.logoUrl}
-          alt={`${company.name} logo`}
-          width={48}
-          height={48}
-          className="h-12 w-12 shrink-0 rounded-2xl object-cover"
-        />
-      ) : (
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent-soft text-accent">
-          <Building2 className="h-6 w-6" strokeWidth={1.75} />
-        </div>
-      )}
+    <div
+      className={`mt-4 flex items-start gap-3 rounded-2xl bg-surface p-4 shadow-sm ${brand ? "border-l-4" : ""}`}
+      style={brand ? { borderLeftColor: brand.color } : undefined}
+    >
+      <CompanyMark company={company} />
       <div className="min-w-0">
         <p className="text-xs font-semibold text-ink-muted">Your home-watch company</p>
         <p className="font-bold text-ink">{company.name}</p>

@@ -42,7 +42,7 @@ export async function sendClientInvitationAction(clientId: string): Promise<Acti
 
   const sent = await sendEmail({
     to: client.email,
-    ...emails.clientInvite(ctx.company.name, client.firstName, invitationUrl(token), INVITATION_TTL_DAYS),
+    ...emails.clientInvite(ctx.company, client.firstName, invitationUrl(token), INVITATION_TTL_DAYS),
   });
   if (!sent) {
     await prisma.invitation.deleteMany({ where: { clientId: client.id, acceptedAt: null } });
