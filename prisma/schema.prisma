@@ -20,18 +20,19 @@ model User {
 
   authTokens           AuthToken[]
   visitsCreated        Visit[]
-  homes                Home[]           @relation("HomeOwner")
+  homes                Home[]             @relation("HomeOwner")
   companyMembership    CompanyMember?
-  assignedProperties   Home[]           @relation("HomeAssignedEmployee")
+  assignedProperties   Home[]             @relation("HomeAssignedEmployee")
   clientRecords        Client[]
-  invitationsSent      Invitation[]     @relation("InvitationsSent")
-  inspectionsPerformed Inspection[]     @relation("InspectionsPerformed")
+  invitationsSent      Invitation[]       @relation("InvitationsSent")
+  inspectionsPerformed Inspection[]       @relation("InspectionsPerformed")
   notifications        Notification[]
   issueEvents          IssueEvent[]
+  contractorSearches   ContractorSearch[]
   assignments          HomeAssignment[]
   reports              Report[]
-  sentMessages         Message[]        @relation("MessageSender")
-  receivedMessages     Message[]        @relation("MessageRecipient")
+  sentMessages         Message[]          @relation("MessageSender")
+  receivedMessages     Message[]          @relation("MessageRecipient")
 }
 
 // A property. Independent homeowners own one directly (ownerId). A company-managed property
@@ -61,14 +62,15 @@ model Home {
   assignedEmployeeId String?
   assignedEmployee   User?    @relation("HomeAssignedEmployee", fields: [assignedEmployeeId], references: [id], onDelete: SetNull)
 
-  assignments    HomeAssignment[]
-  invites        HomeInvite[]
-  visits         Visit[]
-  checklistItems ChecklistItem[]
-  reports        Report[]
-  inspections    Inspection[]
-  issues         Issue[]
-  messages       Message[]
+  assignments        HomeAssignment[]
+  invites            HomeInvite[]
+  visits             Visit[]
+  checklistItems     ChecklistItem[]
+  reports            Report[]
+  inspections        Inspection[]
+  issues             Issue[]
+  contractorSearches ContractorSearch[]
+  messages           Message[]
 
   @@index([companyId])
   @@index([clientId])
@@ -364,4 +366,18 @@ model IssueEvent {
   createdAt    DateTime    @default(now())
 
   @@index([issueId, createdAt])
+}
+
+// One contractor search, kept to rate-limit lookups (each one is a paid API call) and to see usage.
+// The results themselves aren't stored.
+model ContractorSearch {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  homeId    String
+  home      Home     @relation(fields: [homeId], references: [id], onDelete: Cascade)
+  trade     String
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
 }

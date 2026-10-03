@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { signMediaUrls } from "@/lib/media";
 import { issueLinksFor } from "@/lib/issue-links";
+import { contractorSearchAvailable, tradeForItem } from "@/lib/contractors";
 import { BackLink } from "@/components/back-link";
 import { InspectionReport } from "@/components/inspection-report";
 
@@ -32,12 +33,18 @@ export default async function HomeownerInspectionPage(
   });
   const urls = await signMediaUrls(inspection.items.flatMap((i) => i.media.map((m) => m.path)));
   const issueLinks = await issueLinksFor(inspection, (id) => `/dashboard/homeowner/homes/${homeId}/issues/${id}`);
+  const proLinkFor = contractorSearchAvailable()
+    ? (itemKey: string) => ({
+        href: `/dashboard/homeowner/homes/${homeId}/pros?trade=${tradeForItem(itemKey).key}`,
+        label: `Find ${tradeForItem(itemKey).plural} near my property`,
+      })
+    : undefined;
 
   return (
     <div className="mx-auto max-w-2xl">
       <BackLink href={`/dashboard/homeowner/homes/${homeId}`} label={`Back to ${inspection.home.nickname}`} />
       <div className="mt-4">
-        <InspectionReport inspection={inspection} mediaUrls={urls} branded issueLinks={issueLinks} />
+        <InspectionReport inspection={inspection} mediaUrls={urls} branded issueLinks={issueLinks} proLinkFor={proLinkFor} />
       </div>
     </div>
   );

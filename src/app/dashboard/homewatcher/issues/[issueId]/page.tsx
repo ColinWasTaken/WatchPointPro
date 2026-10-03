@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { issueScope, requireCompany } from "@/lib/authz";
 import { signMediaUrls } from "@/lib/media";
 import { isIssueStatus } from "@/lib/issues";
+import { contractorSearchAvailable, tradeForItem } from "@/lib/contractors";
 import { updateIssueAction } from "@/lib/actions/issues";
 import { BackLink } from "@/components/back-link";
 import { IssueDetail } from "@/components/issue-detail";
@@ -35,6 +36,14 @@ export default async function CompanyIssuePage(props: PageProps<"/dashboard/home
           mediaUrls={urls}
           reportHrefFor={(id) => `/dashboard/homewatcher/inspections/${id}`}
           form={<IssueUpdateForm action={updateIssueAction.bind(null, issue.id)} current={issue.status} />}
+          findPros={
+            contractorSearchAvailable()
+              ? {
+                  href: `/dashboard/homewatcher/properties/${issue.homeId}/pros?trade=${tradeForItem(issue.itemKey).key}&issue=${issue.id}`,
+                  label: `Find ${tradeForItem(issue.itemKey).plural} near this property`,
+                }
+              : undefined
+          }
         />
       </div>
     </div>

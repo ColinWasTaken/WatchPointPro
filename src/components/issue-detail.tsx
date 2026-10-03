@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { Search } from "lucide-react";
 import type { Prisma } from "@prisma/client";
 import { LocalTime } from "./local-time";
 import { IssueStatusBadge, SeverityIcon } from "./issue-list";
@@ -28,11 +29,13 @@ export function IssueDetail({
   mediaUrls,
   reportHrefFor,
   form,
+  findPros,
 }: {
   issue: IssueWithHistory;
   mediaUrls: Map<string, string>;
   reportHrefFor: (inspectionId: string) => string;
   form: ReactNode;
+  findPros?: { href: string; label: string };
 }) {
   const media = issue.item?.media ?? [];
   const events = [...issue.events].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
@@ -75,6 +78,15 @@ export function IssueDetail({
             ),
           )}
         </div>
+      )}
+
+      {findPros && issue.status !== "resolved" && (
+        <Link
+          href={findPros.href}
+          className="mt-4 flex min-h-[52px] items-center justify-center gap-2 rounded-full bg-accent-soft text-sm font-bold text-accent transition-colors hover:bg-accent hover:text-white"
+        >
+          <Search className="h-4 w-4" strokeWidth={2.5} /> {findPros.label}
+        </Link>
       )}
 
       <div className="mt-6">{form}</div>

@@ -3,6 +3,7 @@ import { ClipboardCheck } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { signMediaUrls } from "@/lib/media";
 import { issueLinksFor } from "@/lib/issue-links";
+import { contractorSearchAvailable, tradeForItem } from "@/lib/contractors";
 import { LocalTime } from "@/components/local-time";
 import { InspectionReport, OutcomeBadge } from "@/components/inspection-report";
 import { IssueList } from "@/components/issue-list";
@@ -69,12 +70,18 @@ export async function HomeChecks({ homeId, companyName }: { homeId: string; comp
   const urls = await signMediaUrls(latest.items.flatMap((i) => i.media.map((m) => m.path)));
   const base = `/dashboard/homeowner/homes/${homeId}/inspections`;
   const issueLinks = await issueLinksFor(latest, (id) => `/dashboard/homeowner/homes/${homeId}/issues/${id}`);
+  const proLinkFor = contractorSearchAvailable()
+    ? (itemKey: string) => ({
+        href: `/dashboard/homeowner/homes/${homeId}/pros?trade=${tradeForItem(itemKey).key}`,
+        label: `Find ${tradeForItem(itemKey).plural} near my property`,
+      })
+    : undefined;
 
   return (
     <>
       {issueSections}
       <section className="mt-8">
-        <InspectionReport inspection={latest} mediaUrls={urls} showPlace={false} issueLinks={issueLinks} />
+        <InspectionReport inspection={latest} mediaUrls={urls} showPlace={false} issueLinks={issueLinks} proLinkFor={proLinkFor} />
         <Link href={`${base}/${latest.id}`} className="mt-3 inline-block text-sm font-semibold text-accent">
           Open this report
         </Link>

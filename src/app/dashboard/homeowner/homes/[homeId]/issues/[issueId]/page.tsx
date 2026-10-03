@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { signMediaUrls } from "@/lib/media";
 import { isIssueStatus } from "@/lib/issues";
+import { contractorSearchAvailable, tradeForItem } from "@/lib/contractors";
 import { updateIssueAction } from "@/lib/actions/issues";
 import { BackLink } from "@/components/back-link";
 import { IssueDetail } from "@/components/issue-detail";
@@ -40,6 +41,14 @@ export default async function HomeownerIssuePage(props: PageProps<"/dashboard/ho
           mediaUrls={urls}
           reportHrefFor={(id) => `/dashboard/homeowner/homes/${homeId}/inspections/${id}`}
           form={<IssueUpdateForm action={updateIssueAction.bind(null, issue.id)} current={issue.status} />}
+          findPros={
+            contractorSearchAvailable()
+              ? {
+                  href: `/dashboard/homeowner/homes/${homeId}/pros?trade=${tradeForItem(issue.itemKey).key}&issue=${issue.id}`,
+                  label: `Find ${tradeForItem(issue.itemKey).plural} near my property`,
+                }
+              : undefined
+          }
         />
       </div>
     </div>

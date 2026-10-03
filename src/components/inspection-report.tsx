@@ -60,6 +60,7 @@ export function InspectionReport({
   branded = false,
   showPlace = true,
   issueLinks,
+  proLinkFor,
 }: {
   inspection: ReportSource;
   mediaUrls: Map<string, string>;
@@ -67,6 +68,8 @@ export function InspectionReport({
   showPlace?: boolean;
   // The issue each problem item opened or updated, by checklist key.
   issueLinks?: Map<string, { href: string; status: string }>;
+  // For homeowners: where to find professionals for a problem item.
+  proLinkFor?: (itemKey: string) => { href: string; label: string } | null;
 }) {
   const outcome = inspectionOutcome(inspection.items);
   const when = (inspection.submittedAt ?? inspection.startedAt).toISOString();
@@ -150,6 +153,14 @@ export function InspectionReport({
                     return issue && isIssueStatus(issue.status) ? (
                       <Link href={issue.href} className="mt-1.5 inline-block text-xs font-semibold text-accent">
                         Issue · {ISSUE_STATUS_LABEL[issue.status]} →
+                      </Link>
+                    ) : null;
+                  })()}
+                  {(() => {
+                    const pros = status !== "good" ? proLinkFor?.(item.key) : null;
+                    return pros ? (
+                      <Link href={pros.href} className="ml-3 mt-1.5 inline-block text-xs font-semibold text-accent">
+                        {pros.label} →
                       </Link>
                     ) : null;
                   })()}
