@@ -63,27 +63,32 @@ export async function scheduleVisitAction(
     data: { homeId, scheduledFor: when, note: note || null, createdById: session.user.id },
   });
 
-  // Tell the other side: owner → homewatchers, homewatcher → owner, company → the assigned employee.
-  const [recipients, path] =
-    as === "owner"
-      ? [home.assignments.map((a) => a.homewatcherId), `homewatcher/homes/${homeId}`]
-      : as === "watcher"
-        ? [[home.ownerId], `homeowner/homes/${homeId}`]
-        : [[home.assignedEmployeeId], `homewatcher/properties/${homeId}`];
+  // Tell the other side: owner → homewatchers, homewatcher → owner, company → the assigned employee
+  // and the homeowner (who hears it's from the company, without the team's note).
   const by = session.user.name ?? "Someone";
+  const company = home.companyId ? await prisma.company.findUnique({ where: { id: home.companyId }, select: { name: true } }) : null;
+  const recipients: { id: string | null; path: string; by: string }[] =
+    as === "owner"
+      ? home.assignments.map((a) => ({ id: a.homewatcherId, path: `homewatcher/homes/${homeId}`, by }))
+      : as === "watcher"
+        ? [{ id: home.ownerId, path: `homeowner/homes/${homeId}`, by }]
+        : [
+            { id: home.assignedEmployeeId, path: `homewatcher/properties/${homeId}`, by },
+            { id: home.ownerId, path: `homeowner/homes/${homeId}`, by: company?.name ?? by },
+          ];
   await Promise.all(
     recipients
-      .filter((id) => id && id !== session.user.id)
-      .map((id) =>
+      .filter((r): r is { id: string; path: string; by: string } => Boolean(r.id) && r.id !== session.user.id)
+      .map((r) =>
         notify(
-          id,
+          r.id,
           (tz) => ({
             type: "visit_scheduled",
             title: `${as === "company" ? "Check" : "Visit"} scheduled at ${home.nickname}`,
-            body: `${formatWhen(when, tz)} · scheduled by ${by}`,
-            link: `/dashboard/${path}`,
+            body: `${formatWhen(when, tz)} · scheduled by ${r.by}`,
+            link: `/dashboard/${r.path}`,
           }),
-          (tz) => emails.visitScheduled(by, home.nickname, formatWhen(when, tz), `${appUrl()}/dashboard/${path}`),
+          (tz) => emails.visitScheduled(r.by, home.nickname, formatWhen(when, tz), `${appUrl()}/dashboard/${r.path}`),
         ),
       ),
   );

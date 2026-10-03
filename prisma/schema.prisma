@@ -34,6 +34,7 @@ model User {
   reports              Report[]
   sentMessages         Message[]          @relation("MessageSender")
   receivedMessages     Message[]          @relation("MessageRecipient")
+  propertyMessages     PropertyMessage[]  @relation("PropertyMessagesWritten")
 }
 
 // A property. Independent homeowners own one directly (ownerId). A company-managed property
@@ -72,6 +73,7 @@ model Home {
   issues             Issue[]
   contractorSearches ContractorSearch[]
   messages           Message[]
+  propertyMessages   PropertyMessage[]
 
   @@index([companyId])
   @@index([clientId])
@@ -122,6 +124,21 @@ model Message {
   recipient   User     @relation("MessageRecipient", fields: [recipientId], references: [id])
   content     String
   createdAt   DateTime @default(now())
+}
+
+// A message between a homeowner and their home-watch company about one property. Everyone at the
+// company who can see the property reads the same thread and can reply.
+model PropertyMessage {
+  id          String   @id @default(cuid())
+  homeId      String
+  home        Home     @relation(fields: [homeId], references: [id], onDelete: Cascade)
+  authorId    String?
+  author      User?    @relation("PropertyMessagesWritten", fields: [authorId], references: [id], onDelete: SetNull)
+  fromCompany Boolean // which side wrote it, kept even if the author's account is removed
+  body        String
+  createdAt   DateTime @default(now())
+
+  @@index([homeId, createdAt])
 }
 
 // One-time tokens for email verification and password reset. Only the SHA-256 hash is stored.

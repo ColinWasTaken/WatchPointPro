@@ -4,6 +4,7 @@ import { BackLink } from "@/components/back-link";
 import { PropertyForm } from "@/components/company-forms";
 import { ConfirmButton } from "@/components/confirm-button";
 import { ReadingTrends } from "@/components/reading-trends";
+import { ThreadLink } from "@/components/property-thread";
 import { VisitsSection } from "@/components/visits-section";
 import { HomeCheckPanel } from "./home-check-panel";
 import { companyEmployees, getPropertyOr404, isAdmin, requireCompany } from "@/lib/authz";
@@ -48,6 +49,13 @@ export default async function PropertyPage(props: PageProps<"/dashboard/homewatc
       </p>
 
       <HomeCheckPanel homeId={property.id} />
+
+      <ThreadLink
+        homeId={property.id}
+        side="company"
+        title={`Messages with ${property.client ? clientName(property.client) : "the homeowner"}`}
+        empty={property.ownerId ? "Write to the homeowner about anything at the house." : "Messages reach the homeowner once they have an account."}
+      />
 
       <VisitsSection
         homeId={property.id}

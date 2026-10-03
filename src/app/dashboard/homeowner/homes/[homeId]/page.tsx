@@ -10,6 +10,7 @@ import { VisitsSection } from "@/components/visits-section";
 import { StatusBadge } from "@/components/status-badge";
 import { BackLink } from "@/components/back-link";
 import { CompanyCard } from "@/components/company-card";
+import { ThreadLink, UpcomingChecks } from "@/components/property-thread";
 import { ConfirmButton } from "@/components/confirm-button";
 import { removeAssignmentAction, cancelInviteAction } from "@/lib/actions/homes";
 import { InviteForm } from "./invite-form";
@@ -98,7 +99,18 @@ export default async function HomeDetailPage(
         {home.address}
       </p>
 
-      {managed && <CompanyCard company={managed} />}
+      {managed && (
+        <>
+          <CompanyCard company={managed} />
+          <ThreadLink
+            homeId={home.id}
+            side="owner"
+            title={`Messages with ${managed.name}`}
+            empty="Ask a question or share an update about the house."
+          />
+          <UpcomingChecks homeId={home.id} />
+        </>
+      )}
 
       {!managed && home.notes && (
         <div className="mt-4 rounded-2xl bg-surface p-4 shadow-sm">

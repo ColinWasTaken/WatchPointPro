@@ -109,6 +109,11 @@ export const emails = {
       link,
     ),
   }),
+  companyMessage: (company: FromCompany, sender: string, home: string, snippet: string, link: string) => ({
+    subject: `New message from ${oneLine(company.name)} about ${oneLine(home)}`,
+    html: layout("New message", `<b>${esc(sender)}</b> wrote about ${esc(home)}: "${esc(snippet)}"`, "Open messages", link, company),
+    ...fromCompany(company),
+  }),
   newMessage: (sender: string, home: string, snippet: string, link: string) => ({
     subject: `New message from ${sender} about ${home}`,
     html: layout("New message", `<b>${esc(sender)}</b> (${esc(home)}): "${esc(snippet)}"`, "Open conversation", link),
